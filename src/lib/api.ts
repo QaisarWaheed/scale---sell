@@ -2,7 +2,7 @@ import axios from "axios";
 import { supabase } from "@/integrations/supabase/client";
 
 const api = axios.create({
-  baseURL: "http://localhost:5000/api", // Adjust if your backend runs on a different port
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
 });
 
 // Add a request interceptor to attach the Supabase token
