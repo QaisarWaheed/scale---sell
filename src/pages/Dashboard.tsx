@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+import { DashboardHeader } from "@/components/DashboardHeader";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -62,23 +61,20 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
+    <div className="min-h-screen flex flex-col bg-muted/30">
+      <DashboardHeader
+        userEmail={user?.email}
+        role={role}
+        onSignOut={handleSignOut}
+      />
 
-      <main className="flex-1 py-8 bg-muted/30">
+      <main className="flex-1 py-8">
         <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-3xl font-bold mb-2 capitalize">
-                {role} Dashboard
-              </h1>
-              <p className="text-muted-foreground">
-                Welcome back, {user?.email}
-              </p>
-            </div>
-            <Button variant="outline" onClick={handleSignOut}>
-              Sign Out
-            </Button>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2 capitalize">
+              {role} Dashboard
+            </h1>
+            <p className="text-muted-foreground">Welcome back, {user?.email}</p>
           </div>
 
           {role === "admin" && <AdminDashboard />}
@@ -86,8 +82,6 @@ export default function Dashboard() {
           {role === "seller" && <SellerDashboard />}
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }
