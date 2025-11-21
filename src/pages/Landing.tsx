@@ -19,7 +19,26 @@ import {
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-handshake.jpg";
 
+import { useEffect, useState } from "react";
+import { getListings } from "@/lib/listingApi";
+
 export default function Landing() {
+  const [activeListingsCount, setActiveListingsCount] = useState("500+");
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const listings = await getListings();
+        if (listings.length > 0) {
+          setActiveListingsCount(listings.length.toString() + "+");
+        }
+      } catch (error) {
+        console.error("Failed to fetch stats", error);
+      }
+    };
+    fetchStats();
+  }, []);
+
   return (
     <PageLayout>
       {/* Hero Section */}
@@ -47,7 +66,7 @@ export default function Landing() {
               <div className="flex gap-8 justify-center md:justify-start pt-4">
                 <div className="text-center">
                   <p className="text-3xl font-bold text-primary-foreground">
-                    500+
+                    {activeListingsCount}
                   </p>
                   <p className="text-sm text-primary-foreground/80">
                     Active Listings

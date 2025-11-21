@@ -1,30 +1,109 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SectionHeader } from "@/components/layouts/SectionHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User, Mail, Phone, MapPin, Building2, Save } from "lucide-react";
+import { User, Phone, MapPin, Building2, Save } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { getProfile, updateProfile } from "@/lib/userApi";
 
 export default function ProfilePage() {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
-    fullName: "John Doe",
-    email: "john@example.com",
-    phone: "+1 (555) 123-4567",
-    location: "San Francisco, CA",
-    company: "Tech Ventures Inc",
-    bio: "Experienced investor looking for promising SaaS businesses",
-    role: "investor",
+    fullName: "",
+    email: "",
+    phone: "",
+    location: "",
+    company: "",
+    bio: "",
+    role: "",
+    avatarUrl: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle profile update
-    console.log("Profile updated:", formData);
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      const user = await getProfile();
+      setFormData({
+        fullName: user.profile?.name || "",
+        email: user.email || "",
+        phone: user.profile?.phone || "",
+        location: user.profile?.location || "",
+        company: user.profile?.company || "",
+        bio: user.profile?.bio || "",
+        role: user.role || "investor",
+        avatarUrl: user.profile?.avatarUrl || "",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error fetching profile",
+        description: error.response?.data?.message || "Failed to load profile",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setSaving(true);
+      const updatedUser = await updateProfile({
+        profile: {
+          name: formData.fullName,
+          phone: formData.phone,
+          location: formData.location,
+          company: formData.company,
+          bio: formData.bio,
+          avatarUrl: formData.avatarUrl,
+        },
+      });
+
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been updated successfully",
+      });
+
+      // Update local state just in case
+      setFormData((prev) => ({
+        ...prev,
+        fullName: updatedUser.profile?.name || prev.fullName,
+        phone: updatedUser.profile?.phone || prev.phone,
+        location: updatedUser.profile?.location || prev.location,
+        company: updatedUser.profile?.company || prev.company,
+        bio: updatedUser.profile?.bio || prev.bio,
+        avatarUrl: updatedUser.profile?.avatarUrl || prev.avatarUrl,
+      }));
+    } catch (error: any) {
+      toast({
+        title: "Error updating profile",
+        description:
+          error.response?.data?.message || "Failed to update profile",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-muted-foreground">Loading profile...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -38,10 +117,15 @@ export default function ProfilePage() {
         <Card className="md:col-span-1">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center text-center">
-              <Avatar className="h-24 w-24 bg-primary text-primary-foreground flex items-center justify-center text-2xl mb-4">
-                <span>JD</span>
+              <Avatar className="h-24 w-24 mb-4">
+                <AvatarImage src={formData.avatarUrl} />
+                <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
+                  {formData.fullName.substring(0, 2).toUpperCase() || "U"}
+                </AvatarFallback>
               </Avatar>
-              <h2 className="text-xl font-bold mb-1">{formData.fullName}</h2>
+              <h2 className="text-xl font-bold mb-1">
+                {formData.fullName || "User"}
+              </h2>
               <Badge className="mb-2 capitalize">{formData.role}</Badge>
               <p className="text-sm text-muted-foreground mb-4">
                 {formData.email}
@@ -53,15 +137,15 @@ export default function ProfilePage() {
               <div className="w-full mt-6 space-y-3 text-sm">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Phone className="h-4 w-4" />
-                  <span>{formData.phone}</span>
+                  <span>{formData.phone || "No phone added"}</span>
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <MapPin className="h-4 w-4" />
-                  <span>{formData.location}</span>
+                  <span>{formData.location || "No location added"}</span>
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Building2 className="h-4 w-4" />
-                  <span>{formData.company}</span>
+                  <span>{formData.company || "No company added"}</span>
                 </div>
               </div>
             </div>
@@ -92,9 +176,8 @@ export default function ProfilePage() {
                     id="email"
                     type="email"
                     value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
+                    disabled
+                    className="bg-muted"
                   />
                 </div>
               </div>
@@ -108,6 +191,7 @@ export default function ProfilePage() {
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
+                    placeholder="+1 (555) 000-0000"
                   />
                 </div>
                 <div className="space-y-2">
@@ -118,6 +202,7 @@ export default function ProfilePage() {
                     onChange={(e) =>
                       setFormData({ ...formData, location: e.target.value })
                     }
+                    placeholder="City, Country"
                   />
                 </div>
               </div>
@@ -130,6 +215,7 @@ export default function ProfilePage() {
                   onChange={(e) =>
                     setFormData({ ...formData, company: e.target.value })
                   }
+                  placeholder="Company Name"
                 />
               </div>
 
@@ -147,12 +233,16 @@ export default function ProfilePage() {
               </div>
 
               <div className="flex gap-3 justify-end">
-                <Button type="button" variant="outline">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fetchProfile()}
+                >
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button type="submit" disabled={saving}>
                   <Save className="h-4 w-4 mr-2" />
-                  Save Changes
+                  {saving ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             </form>

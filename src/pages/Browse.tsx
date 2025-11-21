@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
-import api from "@/lib/api";
+import { getListings } from "@/lib/listingApi";
 
 export default function Browse() {
   const [listings, setListings] = useState([]);
@@ -33,13 +33,28 @@ export default function Browse() {
   const fetchListings = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/listings", {
-        params: {
-          search: searchTerm,
-          category: category === "all" ? undefined : category,
-        },
-      });
-      setListings(res.data);
+      const params: any = {
+        search: searchTerm,
+        category: category === "all" ? undefined : category,
+      };
+
+      if (priceRange !== "any") {
+        if (priceRange === "0-500k") {
+          params.minPrice = 0;
+          params.maxPrice = 500000;
+        } else if (priceRange === "500k-1m") {
+          params.minPrice = 500000;
+          params.maxPrice = 1000000;
+        } else if (priceRange === "1m-5m") {
+          params.minPrice = 1000000;
+          params.maxPrice = 5000000;
+        } else if (priceRange === "5m+") {
+          params.minPrice = 5000000;
+        }
+      }
+
+      const data = await getListings(params);
+      setListings(data);
     } catch (error) {
       console.error("Failed to fetch listings", error);
     } finally {
