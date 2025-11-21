@@ -7,7 +7,8 @@
     "test": "jest",
     "dev": "nodemon src/server.ts",
     "build": "tsc",
-    "seed": "ts-node src/scripts/seedListings.ts"
+    "seed": "ts-node src/scripts/seedListings.ts",
+    "create-user": "ts-node src/scripts/createUser.ts"
   },
   "keywords": [],
   "author": "",

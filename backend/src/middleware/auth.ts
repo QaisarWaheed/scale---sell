@@ -36,14 +36,18 @@ export const protect = async (
 
       if (!dbUser) {
         // Auto-create if not exists (Sync on fly)
+        const userRole = user.user_metadata?.role || "investor";
+
         dbUser = await User.create({
           supabaseId: user.id,
           email: user.email,
-          role: user.user_metadata.role || "investor",
+          role: userRole,
           profile: {
-            name: user.user_metadata.full_name || "",
+            name: user.user_metadata?.full_name || "",
           },
         });
+
+        console.log(`Created new user in MongoDB with role: ${userRole}`);
       }
 
       req.user = dbUser;
