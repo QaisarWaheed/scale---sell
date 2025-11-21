@@ -38,6 +38,7 @@ import {
 } from "@/lib/adminApi";
 import { UserDialog, UserFormData } from "@/components/dialogs/UserDialog";
 import { ConfirmDialog } from "@/components/dialogs/ConfirmDialog";
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 
 export default function ManageUsersPage() {
   const { toast } = useToast();
@@ -268,9 +269,7 @@ export default function ManageUsersPage() {
         <CardContent>
           <div className="space-y-3">
             {loading ? (
-              <div className="text-center py-8 text-muted-foreground">
-                Loading users...
-              </div>
+              <LoadingSkeleton variant="list" count={5} />
             ) : filteredUsers.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 No users found
