@@ -5,6 +5,7 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
   role: string;
   userEmail?: string;
+  userName?: string;
   title?: string;
   subtitle?: string;
   className?: string;
@@ -18,13 +19,14 @@ export function DashboardLayout({
   children,
   role,
   userEmail,
+  userName,
   title,
   subtitle,
   className,
 }: DashboardLayoutProps) {
   return (
     <div className="flex h-screen overflow-hidden">
-      <AppSidebar role={role} userEmail={userEmail} />
+      <AppSidebar role={role} userEmail={userEmail} userName={userName} />
 
       <main className="flex-1 overflow-y-auto bg-muted/30">
         <div className={cn("container mx-auto p-8", className)}>

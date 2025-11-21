@@ -8,6 +8,7 @@ import TransactionsPage from "./TransactionsPage";
 import { useEffect, useState } from "react";
 import { getMyListings } from "@/lib/listingApi";
 import { getThreads } from "@/lib/messageApi";
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 
 export default function SellerDashboard() {
   const [searchParams] = useSearchParams();
@@ -81,6 +82,24 @@ export default function SellerDashboard() {
   if (tab === "listings") return <MyListingsPage />;
   if (tab === "messages") return <MessagesPage />;
   if (tab === "transactions") return <TransactionsPage />;
+
+  if (loading) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <div className="mb-6 space-y-2">
+            <div className="h-8 w-48 bg-muted rounded animate-pulse" />
+            <div className="h-4 w-64 bg-muted rounded animate-pulse" />
+          </div>
+          <LoadingSkeleton variant="grid" count={4} />
+        </div>
+        <div className="p-6 border rounded-lg bg-card">
+          <div className="h-6 w-48 bg-muted rounded mb-4 animate-pulse" />
+          <LoadingSkeleton variant="list" count={3} />
+        </div>
+      </div>
+    );
+  }
 
   // Default dashboard overview
   return (

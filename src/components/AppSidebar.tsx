@@ -19,9 +19,10 @@ import { useState } from "react";
 interface AppSidebarProps {
   role: string;
   userEmail?: string;
+  userName?: string;
 }
 
-export function AppSidebar({ role, userEmail }: AppSidebarProps) {
+export function AppSidebar({ role, userEmail, userName }: AppSidebarProps) {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
 
@@ -136,7 +137,7 @@ export function AppSidebar({ role, userEmail }: AppSidebarProps) {
         {!collapsed && (
           <div className="mb-3 px-2">
             <p className="text-xs text-sidebar-foreground/70 truncate font-medium">
-              {userEmail}
+              {userName || userEmail}
             </p>
             <p className="text-xs text-sidebar-primary font-semibold capitalize mt-0.5">
               {role}

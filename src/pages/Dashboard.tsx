@@ -55,8 +55,9 @@ export default function Dashboard() {
     <DashboardLayout
       role={role}
       userEmail={user?.email}
+      userName={user?.user_metadata?.name}
       title={`${role.charAt(0).toUpperCase() + role.slice(1)} Dashboard`}
-      subtitle={`Welcome back, ${user?.email}`}
+      subtitle={`Welcome back, ${user?.user_metadata?.name || user?.email}`}
     >
       {role === "admin" && <AdminDashboard />}
       {role === "investor" && <InvestorDashboard />}
