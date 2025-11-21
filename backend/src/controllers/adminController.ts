@@ -88,3 +88,140 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Create new user
+// @route   POST /api/admin/users
+// @access  Private (Admin)
+export const createUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const { email, role, name, phone, location } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const user = await User.create({
+      email,
+      role: role || "investor",
+      profile: {
+        name,
+        phone,
+        location,
+      },
+    });
+
+    res.status(201).json(user);
+  } catch (error: any) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Update user
+// @route   PUT /api/admin/users/:id
+// @access  Private (Admin)
+export const updateUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const { email, role, name, phone, location, avatarUrl } = req.body;
+
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update fields
+    if (email) user.email = email;
+    if (role) user.role = role;
+    if (name !== undefined) user.profile.name = name;
+    if (phone !== undefined) user.profile.phone = phone;
+    if (location !== undefined) user.profile.location = location;
+    if (avatarUrl !== undefined) user.profile.avatarUrl = avatarUrl;
+
+    const updatedUser = await user.save();
+    res.json(updatedUser);
+  } catch (error: any) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Get all listings (admin view - includes all statuses)
+// @route   GET /api/admin/listings
+// @access  Private (Admin)
+export const getAllListings = async (req: AuthRequest, res: Response) => {
+  try {
+    const listings = await Business.find()
+      .populate("sellerId", "profile.name email")
+      .sort({ createdAt: -1 });
+    res.json(listings);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get pending listings
+// @route   GET /api/admin/listings/pending
+// @access  Private (Admin)
+export const getPendingListings = async (req: AuthRequest, res: Response) => {
+  try {
+    const listings = await Business.find({ status: "pending" })
+      .populate("sellerId", "profile.name email")
+      .sort({ createdAt: -1 });
+    res.json(listings);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Approve listing
+// @route   PUT /api/admin/listings/:id/approve
+// @access  Private (Admin)
+export const approveListing = async (req: AuthRequest, res: Response) => {
+  try {
+    const listing = await Business.findById(req.params.id);
+    if (!listing) {
+      return res.status(404).json({ message: "Listing not found" });
+    }
+
+    listing.status = "approved";
+    const updatedListing = await listing.save();
+    res.json(updatedListing);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Reject listing
+// @route   PUT /api/admin/listings/:id/reject
+// @access  Private (Admin)
+export const rejectListing = async (req: AuthRequest, res: Response) => {
+  try {
+    const listing = await Business.findById(req.params.id);
+    if (!listing) {
+      return res.status(404).json({ message: "Listing not found" });
+    }
+
+    listing.status = "rejected";
+    const updatedListing = await listing.save();
+    res.json(updatedListing);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Delete listing (admin)
+// @route   DELETE /api/admin/listings/:id
+// @access  Private (Admin)
+export const deleteListingAdmin = async (req: AuthRequest, res: Response) => {
+  try {
+    const listing = await Business.findById(req.params.id);
+    if (!listing) {
+      return res.status(404).json({ message: "Listing not found" });
+    }
+
+    await listing.deleteOne();
+    res.json({ message: "Listing deleted successfully" });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};

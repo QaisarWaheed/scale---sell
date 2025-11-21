@@ -150,3 +150,17 @@ export const deleteListing = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Get current seller's listings
+// @route   GET /api/listings/my-listings
+// @access  Private (Seller)
+export const getMyListings = async (req: AuthRequest, res: Response) => {
+  try {
+    const listings = await Business.find({ sellerId: req.user?._id }).sort({
+      createdAt: -1,
+    });
+    res.json(listings);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};

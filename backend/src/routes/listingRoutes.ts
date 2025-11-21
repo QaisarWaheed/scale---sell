@@ -5,6 +5,7 @@ import {
   getListingById,
   updateListing,
   deleteListing,
+  getMyListings,
 } from "../controllers/listingController";
 import { protect, authorize } from "../middleware/auth";
 
@@ -14,6 +15,8 @@ router
   .route("/")
   .get(getListings)
   .post(protect, authorize("seller", "admin"), createListing);
+
+router.route("/my-listings").get(protect, authorize("seller"), getMyListings);
 
 router
   .route("/:id")

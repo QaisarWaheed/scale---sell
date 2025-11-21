@@ -1,9 +1,41 @@
+import { useState, useEffect } from "react";
 import { SectionHeader } from "@/components/layouts/SectionHeader";
-import { Card, CardContent } from "@/components/ui/card";
-import { EmptyState } from "@/components/EmptyState";
-import { TrendingUp } from "lucide-react";
+import { StatsCard } from "@/components/StatsCard";
+import { Users, Building2, DollarSign, Activity } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { getSystemStats } from "@/lib/adminApi";
 
 export default function AdminAnalyticsPage() {
+  const { toast } = useToast();
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalListings: 0,
+    activeListings: 0,
+    totalVolume: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      const data = await getSystemStats();
+      setStats(data);
+    } catch (error: any) {
+      toast({
+        title: "Error fetching stats",
+        description:
+          error.response?.data?.message || "Failed to load analytics",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <SectionHeader
@@ -11,15 +43,35 @@ export default function AdminAnalyticsPage() {
         subtitle="Platform performance and insights"
       />
 
-      <Card>
-        <CardContent className="p-12">
-          <EmptyState
-            icon={TrendingUp}
-            title="Analytics Dashboard"
-            description="Detailed analytics and reporting features coming soon. Track platform growth, user engagement, and transaction metrics."
+      {loading ? (
+        <div className="text-center py-12 text-muted-foreground">
+          Loading analytics...
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatsCard
+            title="Total Users"
+            value={stats.totalUsers}
+            icon={Users}
           />
-        </CardContent>
-      </Card>
+          <StatsCard
+            title="Total Listings"
+            value={stats.totalListings}
+            icon={Building2}
+          />
+          <StatsCard
+            title="Active Listings"
+            value={stats.activeListings}
+            icon={Activity}
+          />
+          <StatsCard
+            title="Total Volume"
+            value={stats.totalVolume}
+            icon={DollarSign}
+            prefix="$"
+          />
+        </div>
+      )}
     </div>
   );
 }
