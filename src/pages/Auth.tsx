@@ -1,11 +1,17 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +32,8 @@ export default function Auth() {
 
   // Sign Up Form
   const [signUpEmail, setSignUpEmail] = useState("");
+  const [signUpName, setSignUpName] = useState("");
+  const [signUpPhone, setSignUpPhone] = useState("");
   const [signUpPassword, setSignUpPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -45,12 +53,13 @@ export default function Auth() {
         title: "Welcome back!",
         description: "You've successfully signed in.",
       });
-      
+
       navigate("/dashboard");
     } catch (error: any) {
       toast({
         title: "Sign in failed",
-        description: error.message || "Please check your credentials and try again.",
+        description:
+          error.message || "Please check your credentials and try again.",
         variant: "destructive",
       });
     } finally {
@@ -60,7 +69,7 @@ export default function Auth() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (signUpPassword !== confirmPassword) {
       toast({
         title: "Passwords don't match",
@@ -83,7 +92,7 @@ export default function Auth() {
 
     try {
       const redirectUrl = `${window.location.origin}/`;
-      
+
       const { error } = await supabase.auth.signUp({
         email: signUpEmail,
         password: signUpPassword,
@@ -91,6 +100,8 @@ export default function Auth() {
           emailRedirectTo: redirectUrl,
           data: {
             role: userRole,
+            name: signUpName,
+            phone: signUpPhone,
           },
         },
       });
@@ -101,12 +112,13 @@ export default function Auth() {
         title: "Account created!",
         description: "Please check your email to verify your account.",
       });
-      
+
       navigate("/");
     } catch (error: any) {
       toast({
         title: "Sign up failed",
-        description: error.message || "Unable to create account. Please try again.",
+        description:
+          error.message || "Unable to create account. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -115,16 +127,22 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-
-      <main className="flex-1 flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 bg-background">
+      <div className="absolute top-4 left-4 md:top-8 md:left-8">
+        <Link
+          to="/"
+          className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+        >
+          ← Back to Home
+        </Link>
+      </div>
+      <div className="w-full max-w-md">
         <Card className="w-full max-w-md shadow-lg">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">Welcome to Scale & Sell</CardTitle>
             <CardDescription>
-              {mode === "signup" 
-                ? "Create your account to get started" 
+              {mode === "signup"
+                ? "Create your account to get started"
                 : "Sign in to your account"}
             </CardDescription>
           </CardHeader>
@@ -169,28 +187,67 @@ export default function Auth() {
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-3">
                     <Label>I want to:</Label>
-                    <RadioGroup value={userRole} onValueChange={(value) => setUserRole(value as "seller" | "investor")}>
+                    <RadioGroup
+                      value={userRole}
+                      onValueChange={(value) =>
+                        setUserRole(value as "seller" | "investor")
+                      }
+                    >
                       <div className="flex items-center space-x-2 border rounded-lg p-3 cursor-pointer hover:bg-accent">
                         <RadioGroupItem value="investor" id="investor" />
-                        <Label htmlFor="investor" className="flex items-center gap-2 cursor-pointer flex-1">
+                        <Label
+                          htmlFor="investor"
+                          className="flex items-center gap-2 cursor-pointer flex-1"
+                        >
                           <TrendingUp className="h-4 w-4 text-primary" />
                           <div>
                             <p className="font-medium">Buy a Business</p>
-                            <p className="text-xs text-muted-foreground">Invest in established businesses</p>
+                            <p className="text-xs text-muted-foreground">
+                              Invest in established businesses
+                            </p>
                           </div>
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2 border rounded-lg p-3 cursor-pointer hover:bg-accent">
                         <RadioGroupItem value="seller" id="seller" />
-                        <Label htmlFor="seller" className="flex items-center gap-2 cursor-pointer flex-1">
+                        <Label
+                          htmlFor="seller"
+                          className="flex items-center gap-2 cursor-pointer flex-1"
+                        >
                           <Building2 className="h-4 w-4 text-secondary" />
                           <div>
                             <p className="font-medium">Sell My Business</p>
-                            <p className="text-xs text-muted-foreground">List your business for sale</p>
+                            <p className="text-xs text-muted-foreground">
+                              List your business for sale
+                            </p>
                           </div>
                         </Label>
                       </div>
                     </RadioGroup>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-name">Full Name</Label>
+                    <Input
+                      id="signup-name"
+                      type="text"
+                      placeholder="John Doe"
+                      value={signUpName}
+                      onChange={(e) => setSignUpName(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-phone">Phone Number</Label>
+                    <Input
+                      id="signup-phone"
+                      type="tel"
+                      placeholder="+1 (555) 000-0000"
+                      value={signUpPhone}
+                      onChange={(e) => setSignUpPhone(e.target.value)}
+                      required
+                    />
                   </div>
 
                   <div className="space-y-2">
@@ -224,7 +281,12 @@ export default function Auth() {
                       required
                     />
                   </div>
-                  <Button type="submit" variant="premium" className="w-full" disabled={loading}>
+                  <Button
+                    type="submit"
+                    variant="premium"
+                    className="w-full"
+                    disabled={loading}
+                  >
                     {loading ? "Creating account..." : "Create Account"}
                   </Button>
                 </form>
@@ -236,9 +298,7 @@ export default function Auth() {
             By continuing, you agree to our Terms of Service and Privacy Policy
           </CardFooter>
         </Card>
-      </main>
-
-      <Footer />
+      </div>
     </div>
   );
 }

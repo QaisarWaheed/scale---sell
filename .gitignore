@@ -23,5 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 
+.env
+.env.local
+.env.example
 ./env
 ./backend/env
