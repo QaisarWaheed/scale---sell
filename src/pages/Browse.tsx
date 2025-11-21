@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { PageLayout } from "@/components/layouts/PageLayout";
 import { PageContainer } from "@/components/layouts/PageContainer";
+import { DashboardLayout } from "@/components/layouts/DashboardLayout";
 import { ListingCard } from "@/components/ListingCard";
 import { SearchBar } from "@/components/ui/search-bar";
 import { FilterPanel } from "@/components/ui/filter-panel";
@@ -16,8 +17,67 @@ import {
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
 import { getListings } from "@/lib/listingApi";
+import { supabase } from "@/integrations/supabase/client";
+import { User } from "@supabase/supabase-js";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 export default function Browse() {
+  const [user, setUser] = useState<User | null>(null);
+  const [role, setRole] = useState<string>("investor");
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session) {
+        setUser(session.user);
+        setRole(session.user.user_metadata.role || "investor");
+      }
+      setAuthLoading(false);
+    };
+
+    checkUser();
+  }, []);
+
+  if (authLoading) {
+    return <LoadingSpinner centered />;
+  }
+
+  if (user) {
+    return (
+      <DashboardLayout
+        role={role}
+        userEmail={user.email}
+        title="Browse Businesses"
+        subtitle="Discover verified, revenue-generating businesses ready for acquisition"
+      >
+        <BrowseContent />
+      </DashboardLayout>
+    );
+  }
+
+  return (
+    <PageLayout>
+      <PageContainer className="py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">
+            Browse Businesses
+          </h1>
+          <p className="text-muted-foreground">
+            Discover verified, revenue-generating businesses ready for
+            acquisition
+          </p>
+        </div>
+        <BrowseContent />
+      </PageContainer>
+    </PageLayout>
+  );
+}
+
+function BrowseContent() {
   const [listings, setListings] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState("all");
@@ -63,116 +123,101 @@ export default function Browse() {
   };
 
   return (
-    <PageLayout>
-      <PageContainer className="py-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">
-            Browse Businesses
-          </h1>
-          <p className="text-muted-foreground">
-            Discover verified, revenue-generating businesses ready for
-            acquisition
-          </p>
+    <>
+      {/* Filters */}
+      <FilterPanel
+        resultsCount={listings.length}
+        onClearFilters={() => {
+          setSearchTerm("");
+          setCategory("all");
+          setPriceRange("any");
+        }}
+      >
+        <div className="grid md:grid-cols-3 gap-4">
+          <div className="md:col-span-1">
+            <SearchBar
+              placeholder="Search businesses..."
+              value={searchTerm}
+              onChange={setSearchTerm}
+            />
+          </div>
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger>
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="E-Commerce">E-Commerce</SelectItem>
+              <SelectItem value="SaaS">SaaS</SelectItem>
+              <SelectItem value="Food & Beverage">Food & Beverage</SelectItem>
+              <SelectItem value="Services">Services</SelectItem>
+              <SelectItem value="Technology">Technology</SelectItem>
+              <SelectItem value="Health & Fitness">Health & Fitness</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={priceRange} onValueChange={setPriceRange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Price Range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="any">Any Price</SelectItem>
+              <SelectItem value="0-500k">$0 - $500K</SelectItem>
+              <SelectItem value="500k-1m">$500K - $1M</SelectItem>
+              <SelectItem value="1m-5m">$1M - $5M</SelectItem>
+              <SelectItem value="5m+">$5M+</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
+      </FilterPanel>
 
-        {/* Filters */}
-        <FilterPanel
-          resultsCount={listings.length}
-          onClearFilters={() => {
-            setSearchTerm("");
-            setCategory("all");
-            setPriceRange("any");
+      {/* Listings Grid */}
+      {loading ? (
+        <LoadingSkeleton variant="card" count={6} className="mb-8" />
+      ) : listings.length > 0 ? (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {listings.map((listing: any) => (
+            <ListingCard
+              key={listing._id}
+              id={listing._id}
+              title={listing.title}
+              description={listing.description}
+              price={listing.financials.askingPrice}
+              revenue={listing.financials.revenue}
+              category={listing.category}
+              location={listing.location}
+              verified={listing.status === "approved"}
+              // imageUrl={listing.images[0]}
+            />
+          ))}
+        </div>
+      ) : (
+        <EmptyState
+          icon={Search}
+          title="No businesses found"
+          description="We couldn't find any businesses matching your criteria. Try adjusting your filters or search terms."
+          variant="no-results"
+          action={{
+            label: "Clear Filters",
+            onClick: () => {
+              setSearchTerm("");
+              setCategory("all");
+              setPriceRange("any");
+            },
+            variant: "outline",
           }}
-        >
-          <div className="grid md:grid-cols-3 gap-4">
-            <div className="md:col-span-1">
-              <SearchBar
-                placeholder="Search businesses..."
-                value={searchTerm}
-                onChange={setSearchTerm}
-              />
-            </div>
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="E-Commerce">E-Commerce</SelectItem>
-                <SelectItem value="SaaS">SaaS</SelectItem>
-                <SelectItem value="Food & Beverage">Food & Beverage</SelectItem>
-                <SelectItem value="Services">Services</SelectItem>
-                <SelectItem value="Technology">Technology</SelectItem>
-                <SelectItem value="Health & Fitness">
-                  Health & Fitness
-                </SelectItem>
-              </SelectContent>
-            </Select>
+        />
+      )}
 
-            <Select value={priceRange} onValueChange={setPriceRange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Price Range" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="any">Any Price</SelectItem>
-                <SelectItem value="0-500k">$0 - $500K</SelectItem>
-                <SelectItem value="500k-1m">$500K - $1M</SelectItem>
-                <SelectItem value="1m-5m">$1M - $5M</SelectItem>
-                <SelectItem value="5m+">$5M+</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </FilterPanel>
-
-        {/* Listings Grid */}
-        {loading ? (
-          <LoadingSkeleton variant="card" count={6} className="mb-8" />
-        ) : listings.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {listings.map((listing: any) => (
-              <ListingCard
-                key={listing._id}
-                id={listing._id}
-                title={listing.title}
-                description={listing.description}
-                price={listing.financials.askingPrice}
-                revenue={listing.financials.revenue}
-                category={listing.category}
-                location={listing.location}
-                verified={listing.status === "approved"}
-                // imageUrl={listing.images[0]}
-              />
-            ))}
-          </div>
-        ) : (
-          <EmptyState
-            icon={Search}
-            title="No businesses found"
-            description="We couldn't find any businesses matching your criteria. Try adjusting your filters or search terms."
-            variant="no-results"
-            action={{
-              label: "Clear Filters",
-              onClick: () => {
-                setSearchTerm("");
-                setCategory("all");
-                setPriceRange("any");
-              },
-              variant: "outline",
-            }}
-          />
-        )}
-
-        {/* Pagination */}
-        {!loading && listings.length > 0 && (
-          <SimplePagination
-            currentPage={currentPage}
-            totalPages={Math.ceil(listings.length / itemsPerPage)}
-            onPageChange={setCurrentPage}
-            className="mt-8"
-          />
-        )}
-      </PageContainer>
-    </PageLayout>
+      {/* Pagination */}
+      {!loading && listings.length > 0 && (
+        <SimplePagination
+          currentPage={currentPage}
+          totalPages={Math.ceil(listings.length / itemsPerPage)}
+          onPageChange={setCurrentPage}
+          className="mt-8"
+        />
+      )}
+    </>
   );
 }

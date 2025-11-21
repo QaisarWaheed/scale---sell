@@ -5,10 +5,77 @@ import { Building2, Eye, TrendingUp, MessageSquare } from "lucide-react";
 import MyListingsPage from "./seller/MyListingsPage";
 import MessagesPage from "./MessagesPage";
 import TransactionsPage from "./TransactionsPage";
+import { useEffect, useState } from "react";
+import { getMyListings } from "@/lib/listingApi";
+import { getThreads } from "@/lib/messageApi";
 
 export default function SellerDashboard() {
   const [searchParams] = useSearchParams();
   const tab = searchParams.get("tab");
+
+  const [stats, setStats] = useState({
+    myListings: 0,
+    totalViews: 0,
+    inquiries: 0,
+    performance: "0%",
+  });
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [listings, threads] = await Promise.all([
+          getMyListings(),
+          getThreads(),
+        ]);
+
+        // Calculate My Listings
+        const listingsCount = listings.length;
+
+        // Calculate Total Views (sum of views from all listings)
+        const viewsCount = listings.reduce(
+          (acc: number, curr: any) => acc + (curr.views || 0),
+          0
+        );
+
+        // Calculate Inquiries (total threads)
+        const inquiriesCount = threads.length;
+
+        // Calculate Performance (simple metric: % of listings with > 0 views)
+        const activeListings = listings.filter(
+          (l: any) => (l.views || 0) > 0
+        ).length;
+        const performanceScore =
+          listingsCount > 0
+            ? Math.round((activeListings / listingsCount) * 100)
+            : 0;
+
+        setStats({
+          myListings: listingsCount,
+          totalViews: viewsCount,
+          inquiries: inquiriesCount,
+          performance: `${performanceScore}%`,
+        });
+
+        // Generate Recent Activity from listings (e.g. newly created)
+        // This is a simplified version. Ideally we'd have an activity log endpoint.
+        const activity = listings.slice(0, 3).map((l: any) => ({
+          type: "listing",
+          message: `Listing "${l.title}" is active`,
+          time: new Date(l.createdAt).toLocaleDateString(),
+          color: "bg-blue-500",
+        }));
+        setRecentActivity(activity);
+      } catch (error) {
+        console.error("Failed to fetch dashboard data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   // Render specific tab content
   if (tab === "listings") return <MyListingsPage />;
@@ -26,26 +93,26 @@ export default function SellerDashboard() {
         <div className="grid md:grid-cols-4 gap-6">
           <StatsCard
             title="My Listings"
-            value="2"
+            value={stats.myListings.toString()}
             icon={Building2}
             subtitle="Active businesses"
           />
           <StatsCard
             title="Total Views"
-            value="434"
+            value={stats.totalViews.toString()}
             icon={Eye}
             subtitle="All listings"
-            trend={{ value: "18% from last week", positive: true }}
+            // trend={{ value: "18% from last week", positive: true }}
           />
           <StatsCard
             title="Inquiries"
-            value="20"
+            value={stats.inquiries.toString()}
             icon={MessageSquare}
             subtitle="From interested buyers"
           />
           <StatsCard
             title="Performance"
-            value="89%"
+            value={stats.performance}
             icon={TrendingUp}
             subtitle="Listing quality score"
           />
@@ -55,21 +122,19 @@ export default function SellerDashboard() {
       <div className="p-6 border rounded-lg bg-card">
         <h3 className="font-semibold mb-4">Recent Activity</h3>
         <ul className="space-y-3 text-sm">
-          <li className="flex items-center gap-3">
-            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-            <span>New inquiry on "SaaS Analytics Platform"</span>
-            <span className="ml-auto text-muted-foreground">2h ago</span>
-          </li>
-          <li className="flex items-center gap-3">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span>Listing viewed 12 times today</span>
-            <span className="ml-auto text-muted-foreground">Today</span>
-          </li>
-          <li className="flex items-center gap-3">
-            <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-            <span>Offer received: $320k</span>
-            <span className="ml-auto text-muted-foreground">1d ago</span>
-          </li>
+          {recentActivity.length > 0 ? (
+            recentActivity.map((item, index) => (
+              <li key={index} className="flex items-center gap-3">
+                <div className={`w-2 h-2 ${item.color} rounded-full`}></div>
+                <span>{item.message}</span>
+                <span className="ml-auto text-muted-foreground">
+                  {item.time}
+                </span>
+              </li>
+            ))
+          ) : (
+            <li className="text-muted-foreground">No recent activity</li>
+          )}
         </ul>
       </div>
     </div>

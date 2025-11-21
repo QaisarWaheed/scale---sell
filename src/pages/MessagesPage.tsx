@@ -155,10 +155,7 @@ export default function MessagesPage() {
 
   return (
     <div className="h-[calc(100vh-12rem)] flex flex-col">
-      <SectionHeader
-        title="Messages"
-        subtitle="Communicate with buyers and sellers"
-      />
+      
 
       <div className="flex-1 grid grid-cols-12 gap-6 min-h-0 mt-4">
         {/* Conversations List */}

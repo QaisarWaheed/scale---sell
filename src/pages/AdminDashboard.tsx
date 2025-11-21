@@ -7,10 +7,97 @@ import ReviewListingsPage from "./admin/ReviewListingsPage";
 import AdminAnalyticsPage from "./admin/AdminAnalyticsPage";
 import MessagesPage from "./MessagesPage";
 import TransactionsPage from "./TransactionsPage";
+import { useEffect, useState } from "react";
+import {
+  getAllUsers,
+  getAllListings,
+  getPendingListings,
+} from "@/lib/adminApi";
+import { formatCurrency } from "@/lib/utils";
 
 export default function AdminDashboard() {
   const [searchParams] = useSearchParams();
   const tab = searchParams.get("tab");
+
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activeListings: 0,
+    totalTransactions: "$0", // Placeholder as we don't have admin transaction API yet
+    monthlyGrowth: "0%",
+  });
+  const [pendingActions, setPendingActions] = useState({
+    listingsReview: 0,
+    userReports: 0,
+    supportTickets: 0,
+  });
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [users, listings, pendingListings] = await Promise.all([
+          getAllUsers(),
+          getAllListings(),
+          getPendingListings(),
+        ]);
+
+        // Calculate Total Users
+        const usersCount = users.length;
+
+        // Calculate Active Listings (status = approved)
+        const activeListingsCount = listings.filter(
+          (l: any) => l.status === "approved"
+        ).length;
+
+        // Calculate Monthly Growth (users created this month)
+        const now = new Date();
+        const thisMonth = now.getMonth();
+        const thisYear = now.getFullYear();
+        const newUsersCount = users.filter((u: any) => {
+          const d = new Date(u.createdAt);
+          return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+        }).length;
+        const growth =
+          usersCount > 0
+            ? Math.round((newUsersCount / usersCount) * 100) + "%"
+            : "0%";
+
+        setStats({
+          totalUsers: usersCount,
+          activeListings: activeListingsCount,
+          totalTransactions: "$2.5M", // Keeping mock for now as we lack endpoint
+          monthlyGrowth: growth,
+        });
+
+        setPendingActions({
+          listingsReview: pendingListings.length,
+          userReports: 0,
+          supportTickets: 0,
+        });
+
+        // Generate Recent Activity (mix of new users and listings)
+        const recentUsers = users.slice(0, 2).map((u: any) => ({
+          message: `New user registered: ${u.email}`,
+          time: new Date(u.createdAt).toLocaleDateString(),
+          color: "bg-green-500",
+        }));
+        const recentListings = listings.slice(0, 2).map((l: any) => ({
+          message: `Listing ${l.status}: ${l.title}`,
+          time: new Date(l.createdAt).toLocaleDateString(),
+          color: "bg-blue-500",
+        }));
+
+        setRecentActivity([...recentUsers, ...recentListings].slice(0, 5));
+      } catch (error) {
+        console.error("Failed to fetch dashboard data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   // Render specific tab content
   if (tab === "users") return <ManageUsersPage />;
@@ -30,31 +117,31 @@ export default function AdminDashboard() {
         <div className="grid md:grid-cols-4 gap-6">
           <StatsCard
             title="Total Users"
-            value="247"
+            value={stats.totalUsers.toString()}
             icon={Users}
             subtitle="Active platform members"
-            trend={{ value: "12% from last month", positive: true }}
+            // trend={{ value: "12% from last month", positive: true }}
           />
           <StatsCard
             title="Active Listings"
-            value="56"
+            value={stats.activeListings.toString()}
             icon={FileText}
             subtitle="Published businesses"
-            trend={{ value: "8% from last month", positive: true }}
+            // trend={{ value: "8% from last month", positive: true }}
           />
           <StatsCard
             title="Total Transactions"
-            value="$2.5M"
+            value={stats.totalTransactions}
             icon={DollarSign}
             subtitle="All-time volume"
-            trend={{ value: "23% from last month", positive: true }}
+            // trend={{ value: "23% from last month", positive: true }}
           />
           <StatsCard
             title="Monthly Growth"
-            value="+23%"
+            value={stats.monthlyGrowth}
             icon={TrendingUp}
             subtitle="New users this month"
-            trend={{ value: "5% increase", positive: true }}
+            trend={{ value: "Increase", positive: true }}
           />
         </div>
       </div>
@@ -63,21 +150,19 @@ export default function AdminDashboard() {
         <div className="p-6 border rounded-lg bg-card">
           <h3 className="font-semibold mb-4">Recent Activity</h3>
           <ul className="space-y-3 text-sm">
-            <li className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span>New user registered: john@example.com</span>
-              <span className="ml-auto text-muted-foreground">2h ago</span>
-            </li>
-            <li className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span>Listing approved: SaaS Analytics Platform</span>
-              <span className="ml-auto text-muted-foreground">5h ago</span>
-            </li>
-            <li className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-              <span>Transaction completed: $350k</span>
-              <span className="ml-auto text-muted-foreground">1d ago</span>
-            </li>
+            {recentActivity.length > 0 ? (
+              recentActivity.map((item, index) => (
+                <li key={index} className="flex items-center gap-3">
+                  <div className={`w-2 h-2 ${item.color} rounded-full`}></div>
+                  <span>{item.message}</span>
+                  <span className="ml-auto text-muted-foreground">
+                    {item.time}
+                  </span>
+                </li>
+              ))
+            ) : (
+              <li className="text-muted-foreground">No recent activity</li>
+            )}
           </ul>
         </div>
 
@@ -86,15 +171,19 @@ export default function AdminDashboard() {
           <ul className="space-y-3 text-sm">
             <li className="flex items-center gap-3">
               <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              <span>8 listings awaiting review</span>
+              <span>
+                {pendingActions.listingsReview} listings awaiting review
+              </span>
             </li>
             <li className="flex items-center gap-3">
               <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-              <span>3 user reports to investigate</span>
+              <span>
+                {pendingActions.userReports} user reports to investigate
+              </span>
             </li>
             <li className="flex items-center gap-3">
               <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-              <span>2 support tickets open</span>
+              <span>{pendingActions.supportTickets} support tickets open</span>
             </li>
           </ul>
         </div>
