@@ -1,7 +1,7 @@
 import { useSearchParams } from "react-router-dom";
+import { SectionHeader } from "@/components/layouts/SectionHeader";
 import { StatsCard } from "@/components/StatsCard";
 import { Building2, Eye, TrendingUp, MessageSquare } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import MyListingsPage from "./seller/MyListingsPage";
 import MessagesPage from "./MessagesPage";
 import TransactionsPage from "./TransactionsPage";
@@ -19,7 +19,10 @@ export default function SellerDashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold mb-6">Seller Overview</h2>
+        <SectionHeader
+          title="Seller Overview"
+          subtitle="Monitor your business listings"
+        />
         <div className="grid md:grid-cols-4 gap-6">
           <StatsCard
             title="My Listings"

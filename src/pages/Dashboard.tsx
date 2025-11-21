@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AppSidebar } from "@/components/AppSidebar";
+import { DashboardLayout } from "@/components/layouts/DashboardLayout";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import AdminDashboard from "./AdminDashboard";
@@ -47,31 +48,19 @@ export default function Dashboard() {
   }, [navigate]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Loading...</p>
-      </div>
-    );
+    return <LoadingSpinner centered text="Loading dashboard..." />;
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <AppSidebar role={role} userEmail={user?.email} />
-
-      <main className="flex-1 overflow-y-auto bg-muted/30">
-        <div className="container mx-auto p-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2 capitalize">
-              {role} Dashboard
-            </h1>
-            <p className="text-muted-foreground">Welcome back, {user?.email}</p>
-          </div>
-
-          {role === "admin" && <AdminDashboard />}
-          {role === "investor" && <InvestorDashboard />}
-          {role === "seller" && <SellerDashboard />}
-        </div>
-      </main>
-    </div>
+    <DashboardLayout
+      role={role}
+      userEmail={user?.email}
+      title={`${role.charAt(0).toUpperCase() + role.slice(1)} Dashboard`}
+      subtitle={`Welcome back, ${user?.email}`}
+    >
+      {role === "admin" && <AdminDashboard />}
+      {role === "investor" && <InvestorDashboard />}
+      {role === "seller" && <SellerDashboard />}
+    </DashboardLayout>
   );
 }

@@ -1,4 +1,5 @@
 import { useSearchParams } from "react-router-dom";
+import { SectionHeader } from "@/components/layouts/SectionHeader";
 import { StatsCard } from "@/components/StatsCard";
 import { Users, FileText, DollarSign, TrendingUp } from "lucide-react";
 import ManageUsersPage from "./admin/ManageUsersPage";
@@ -22,7 +23,10 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold mb-6">Platform Overview</h2>
+        <SectionHeader
+          title="Platform Overview"
+          subtitle="Monitor your platform's performance"
+        />
         <div className="grid md:grid-cols-4 gap-6">
           <StatsCard
             title="Total Users"

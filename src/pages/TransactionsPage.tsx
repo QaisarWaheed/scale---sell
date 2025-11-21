@@ -1,4 +1,4 @@
-import { PageHeader } from "@/components/PageHeader";
+import { SectionHeader } from "@/components/layouts/SectionHeader";
 import { StatsCard } from "@/components/StatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -70,14 +70,14 @@ const statusConfig = {
 
 export default function TransactionsPage() {
   return (
-    <div>
-      <PageHeader
+    <div className="space-y-8">
+      <SectionHeader
         title="Transactions"
         subtitle="View and manage your escrow transactions"
       />
 
       {/* Stats */}
-      <div className="grid md:grid-cols-4 gap-6 mb-8">
+      <div className="grid md:grid-cols-4 gap-6">
         <StatsCard
           title="Total Volume"
           value={mockStats.totalVolume}

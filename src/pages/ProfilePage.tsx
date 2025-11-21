@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PageHeader } from "@/components/PageHeader";
+import { SectionHeader } from "@/components/layouts/SectionHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -27,8 +27,8 @@ export default function ProfilePage() {
   };
 
   return (
-    <div>
-      <PageHeader
+    <div className="space-y-8">
+      <SectionHeader
         title="Profile Settings"
         subtitle="Manage your account information"
       />

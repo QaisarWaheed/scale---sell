@@ -1,4 +1,5 @@
 import { useSearchParams } from "react-router-dom";
+import { SectionHeader } from "@/components/layouts/SectionHeader";
 import { StatsCard } from "@/components/StatsCard";
 import { Building2, Heart, MessageSquare, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,10 @@ export default function InvestorDashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold mb-6">Investment Overview</h2>
+        <SectionHeader
+          title="Investment Overview"
+          subtitle="Track your investment opportunities"
+        />
         <div className="grid md:grid-cols-4 gap-6">
           <StatsCard
             title="Saved Listings"

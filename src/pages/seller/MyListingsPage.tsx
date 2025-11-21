@@ -1,4 +1,4 @@
-import { PageHeader } from "@/components/PageHeader";
+import { SectionHeader } from "@/components/layouts/SectionHeader";
 import { StatsCard } from "@/components/StatsCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,11 +46,11 @@ const mockStats = {
 
 export default function MyListingsPage() {
   return (
-    <div>
-      <PageHeader
+    <div className="space-y-8">
+      <SectionHeader
         title="My Listings"
         subtitle="Manage your business listings"
-        actions={
+        action={
           <Button>
             <Plus className="h-4 w-4 mr-2" />
             Create Listing
@@ -59,7 +59,7 @@ export default function MyListingsPage() {
       />
 
       {/* Stats */}
-      <div className="grid md:grid-cols-4 gap-6 mb-8">
+      <div className="grid md:grid-cols-4 gap-6">
         <StatsCard
           title="Total Listings"
           value={mockStats.totalListings}
@@ -146,21 +146,15 @@ export default function MyListingsPage() {
           ))}
         </div>
       ) : (
-        <Card>
-          <CardContent className="p-12">
-            <EmptyState
-              icon={Building2}
-              title="No listings yet"
-              description="Create your first business listing to start attracting potential buyers"
-              action={
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Your First Listing
-                </Button>
-              }
-            />
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Building2}
+          title="No listings yet"
+          description="Create your first business listing to start attracting potential buyers"
+          action={{
+            label: "Create Your First Listing",
+            onClick: () => console.log("Create listing"),
+          }}
+        />
       )}
     </div>
   );

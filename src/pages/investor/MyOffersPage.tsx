@@ -1,4 +1,4 @@
-import { PageHeader } from "@/components/PageHeader";
+import { SectionHeader } from "@/components/layouts/SectionHeader";
 import { StatsCard } from "@/components/StatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -49,14 +49,14 @@ const statusConfig = {
 
 export default function MyOffersPage() {
   return (
-    <div>
-      <PageHeader
+    <div className="space-y-8">
+      <SectionHeader
         title="My Offers"
         subtitle="Track your offers on business opportunities"
       />
 
       {/* Stats */}
-      <div className="grid md:grid-cols-4 gap-6 mb-8">
+      <div className="grid md:grid-cols-4 gap-6">
         <StatsCard
           title="Active Offers"
           value={mockStats.activeOffers}
@@ -142,21 +142,15 @@ export default function MyOffersPage() {
           </CardContent>
         </Card>
       ) : (
-        <Card>
-          <CardContent className="p-12">
-            <EmptyState
-              icon={DollarSign}
-              title="No offers yet"
-              description="Browse opportunities and make your first offer to get started"
-              action={
-                <Button>
-                  <TrendingUp className="h-4 w-4 mr-2" />
-                  Browse Opportunities
-                </Button>
-              }
-            />
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={DollarSign}
+          title="No offers yet"
+          description="Browse opportunities and make your first offer to get started"
+          action={{
+            label: "Browse Opportunities",
+            onClick: () => console.log("Browse"),
+          }}
+        />
       )}
     </div>
   );

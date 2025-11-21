@@ -1,16 +1,15 @@
 import { useState } from "react";
-import { PageHeader } from "@/components/PageHeader";
+import { SectionHeader } from "@/components/layouts/SectionHeader";
+import { SearchBar } from "@/components/ui/search-bar";
 import { StatsCard } from "@/components/StatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   Users,
   UserPlus,
   Shield,
   TrendingUp,
-  Search,
   MoreVertical,
 } from "lucide-react";
 import {
@@ -83,11 +82,11 @@ export default function ManageUsersPage() {
   };
 
   return (
-    <div>
-      <PageHeader
+    <div className="space-y-8">
+      <SectionHeader
         title="Manage Users"
         subtitle="View and manage all platform users"
-        actions={
+        action={
           <Button>
             <UserPlus className="h-4 w-4 mr-2" />
             Add User
@@ -96,7 +95,7 @@ export default function ManageUsersPage() {
       />
 
       {/* Stats */}
-      <div className="grid md:grid-cols-4 gap-6 mb-8">
+      <div className="grid md:grid-cols-4 gap-6">
         <StatsCard
           title="Total Users"
           value={mockStats.totalUsers}
@@ -125,13 +124,11 @@ export default function ManageUsersPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>All Users</CardTitle>
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
+            <div className="w-64">
+              <SearchBar
                 placeholder="Search users..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                onChange={setSearchQuery}
               />
             </div>
           </div>

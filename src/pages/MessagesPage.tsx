@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { PageHeader } from "@/components/PageHeader";
+import { SectionHeader } from "@/components/layouts/SectionHeader";
+import { SearchBar } from "@/components/ui/search-bar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/EmptyState";
-import { MessageSquare, Send, Search } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+import { MessageSquare, Send } from "lucide-react";
 
 // Mock data
 const mockConversations = [
@@ -73,7 +73,7 @@ export default function MessagesPage() {
 
   return (
     <div className="h-full flex flex-col">
-      <PageHeader
+      <SectionHeader
         title="Messages"
         subtitle="Communicate with buyers, sellers, and admins"
       />
@@ -82,13 +82,11 @@ export default function MessagesPage() {
         {/* Conversations List */}
         <Card className="col-span-4 flex flex-col">
           <CardContent className="p-4 flex flex-col h-full">
-            <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
+            <div className="mb-4">
+              <SearchBar
                 placeholder="Search conversations..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                onChange={setSearchQuery}
               />
             </div>
 
