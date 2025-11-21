@@ -4,6 +4,8 @@ import { Users, FileText, DollarSign, TrendingUp } from "lucide-react";
 import ManageUsersPage from "./admin/ManageUsersPage";
 import ReviewListingsPage from "./admin/ReviewListingsPage";
 import AdminAnalyticsPage from "./admin/AdminAnalyticsPage";
+import MessagesPage from "./MessagesPage";
+import TransactionsPage from "./TransactionsPage";
 
 export default function AdminDashboard() {
   const [searchParams] = useSearchParams();
@@ -13,6 +15,8 @@ export default function AdminDashboard() {
   if (tab === "users") return <ManageUsersPage />;
   if (tab === "listings") return <ReviewListingsPage />;
   if (tab === "analytics") return <AdminAnalyticsPage />;
+  if (tab === "messages") return <MessagesPage />;
+  if (tab === "transactions") return <TransactionsPage />;
 
   // Default dashboard overview
   return (

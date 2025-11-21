@@ -1,76 +1,76 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { useSearchParams } from "react-router-dom";
+import { StatsCard } from "@/components/StatsCard";
+import { Building2, Heart, MessageSquare, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, Search, FileText } from "lucide-react";
+import MyOffersPage from "./investor/MyOffersPage";
+import MessagesPage from "./MessagesPage";
+import TransactionsPage from "./TransactionsPage";
 
 export default function InvestorDashboard() {
+  const [searchParams] = useSearchParams();
+  const tab = searchParams.get("tab");
+
+  // Render specific tab content
+  if (tab === "offers") return <MyOffersPage />;
+  if (tab === "messages") return <MessagesPage />;
+  if (tab === "transactions") return <TransactionsPage />;
+
+  // Default dashboard overview
   return (
-    <div className="space-y-6">
-      <div className="grid md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Saved Listings
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Offers</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">3</div>
-          </CardContent>
-        </Card>
+    <div className="space-y-8">
+      <div>
+        <h2 className="text-2xl font-bold mb-6">Investment Overview</h2>
+        <div className="grid md:grid-cols-4 gap-6">
+          <StatsCard
+            title="Saved Listings"
+            value="12"
+            icon={Heart}
+            subtitle="Opportunities tracked"
+          />
+          <StatsCard
+            title="Active Offers"
+            value="3"
+            icon={DollarSign}
+            subtitle="Pending responses"
+          />
+          <StatsCard
+            title="Active Deals"
+            value="1"
+            icon={Building2}
+            subtitle="In progress"
+          />
+          <StatsCard
+            title="Messages"
+            value="8"
+            icon={MessageSquare}
+            subtitle="Unread conversations"
+          />
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Recommended Opportunities</CardTitle>
-          <CardDescription>Based on your preferences</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="flex items-center gap-4 p-4 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
-              >
-                <div className="w-12 h-12 rounded bg-primary/10 flex items-center justify-center">
-                  <TrendingUp className="h-6 w-6 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold">High Growth SaaS {i}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Tech • $1.2M ARR
-                  </p>
-                </div>
-                <Button variant="outline" size="sm">
-                  View Details
-                </Button>
+      <div className="p-6 border rounded-lg bg-card">
+        <h3 className="font-semibold mb-4">Recommended Opportunities</h3>
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex-1">
+                <h4 className="font-semibold mb-1">High Growth SaaS {i}</h4>
+                <p className="text-sm text-muted-foreground">
+                  Tech • $1.2M ARR
+                </p>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex gap-4">
-        <Button className="flex-1">
-          <Search className="mr-2 h-4 w-4" /> Browse Marketplace
-        </Button>
-        <Button variant="outline" className="flex-1">
-          <FileText className="mr-2 h-4 w-4" /> View My Offers
-        </Button>
+              <div className="text-right">
+                <div className="text-xl font-bold text-primary mb-1">
+                  ${i * 100}k
+                </div>
+                <Button size="sm">View Details</Button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

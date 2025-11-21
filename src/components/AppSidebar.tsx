@@ -6,7 +6,6 @@ import {
   MessageSquare,
   DollarSign,
   TrendingUp,
-  Shield,
   LogOut,
   ChevronLeft,
 } from "lucide-react";
@@ -39,12 +38,8 @@ export function AppSidebar({ role, userEmail }: AppSidebarProps) {
       label: "Review Listings",
       href: "/dashboard?tab=listings",
     },
-    {
-      icon: Shield,
-      label: "Platform Settings",
-      href: "/dashboard?tab=settings",
-    },
     { icon: TrendingUp, label: "Analytics", href: "/dashboard?tab=analytics" },
+    { icon: MessageSquare, label: "Messages", href: "/dashboard?tab=messages" },
   ];
 
   const investorMenuItems = [
@@ -62,17 +57,12 @@ export function AppSidebar({ role, userEmail }: AppSidebarProps) {
   const sellerMenuItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
     { icon: Building2, label: "My Listings", href: "/dashboard?tab=listings" },
-    {
-      icon: MessageSquare,
-      label: "Inquiries",
-      href: "/dashboard?tab=messages",
-    },
+    { icon: MessageSquare, label: "Messages", href: "/dashboard?tab=messages" },
     {
       icon: DollarSign,
       label: "Transactions",
       href: "/dashboard?tab=transactions",
     },
-    { icon: TrendingUp, label: "Analytics", href: "/dashboard?tab=analytics" },
   ];
 
   const menuItems =

@@ -1,81 +1,74 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { useSearchParams } from "react-router-dom";
+import { StatsCard } from "@/components/StatsCard";
+import { Building2, Eye, TrendingUp, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Building2, DollarSign, MessageSquare } from "lucide-react";
+import MyListingsPage from "./seller/MyListingsPage";
+import MessagesPage from "./MessagesPage";
+import TransactionsPage from "./TransactionsPage";
 
 export default function SellerDashboard() {
+  const [searchParams] = useSearchParams();
+  const tab = searchParams.get("tab");
+
+  // Render specific tab content
+  if (tab === "listings") return <MyListingsPage />;
+  if (tab === "messages") return <MessagesPage />;
+  if (tab === "transactions") return <TransactionsPage />;
+
+  // Default dashboard overview
   return (
-    <div className="space-y-6">
-      <div className="grid md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">My Listings</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">2</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Views</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">1,429</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Inquiries</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">8</div>
-          </CardContent>
-        </Card>
+    <div className="space-y-8">
+      <div>
+        <h2 className="text-2xl font-bold mb-6">Seller Overview</h2>
+        <div className="grid md:grid-cols-4 gap-6">
+          <StatsCard
+            title="My Listings"
+            value="2"
+            icon={Building2}
+            subtitle="Active businesses"
+          />
+          <StatsCard
+            title="Total Views"
+            value="434"
+            icon={Eye}
+            subtitle="All listings"
+            trend={{ value: "18% from last week", positive: true }}
+          />
+          <StatsCard
+            title="Inquiries"
+            value="20"
+            icon={MessageSquare}
+            subtitle="From interested buyers"
+          />
+          <StatsCard
+            title="Performance"
+            value="89%"
+            icon={TrendingUp}
+            subtitle="Listing quality score"
+          />
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Listings</CardTitle>
-          <CardDescription>
-            Manage your active business listings
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[1, 2].map((i) => (
-              <div
-                key={i}
-                className="flex items-center gap-4 p-4 border rounded-lg hover:bg-accent transition-colors"
-              >
-                <div className="w-12 h-12 rounded bg-secondary/10 flex items-center justify-center">
-                  <Building2 className="h-6 w-6 text-secondary" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold">My Business {i}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Active • 4 New Inquiries
-                  </p>
-                </div>
-                <Button variant="outline" size="sm">
-                  Manage
-                </Button>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Button className="w-full">
-        <Building2 className="mr-2 h-4 w-4" /> Create New Listing
-      </Button>
+      <div className="p-6 border rounded-lg bg-card">
+        <h3 className="font-semibold mb-4">Recent Activity</h3>
+        <ul className="space-y-3 text-sm">
+          <li className="flex items-center gap-3">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <span>New inquiry on "SaaS Analytics Platform"</span>
+            <span className="ml-auto text-muted-foreground">2h ago</span>
+          </li>
+          <li className="flex items-center gap-3">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span>Listing viewed 12 times today</span>
+            <span className="ml-auto text-muted-foreground">Today</span>
+          </li>
+          <li className="flex items-center gap-3">
+            <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+            <span>Offer received: $320k</span>
+            <span className="ml-auto text-muted-foreground">1d ago</span>
+          </li>
+        </ul>
+      </div>
     </div>
   );
 }
