@@ -18,12 +18,14 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-handshake.jpg";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { useEffect, useState } from "react";
 import { getListings } from "@/lib/listingApi";
 
 export default function Landing() {
   const [activeListingsCount, setActiveListingsCount] = useState("500+");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -34,6 +36,8 @@ export default function Landing() {
         }
       } catch (error) {
         console.error("Failed to fetch stats", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchStats();
@@ -65,9 +69,13 @@ export default function Landing() {
               </div>
               <div className="flex gap-8 justify-center md:justify-start pt-4">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-primary">
-                    {activeListingsCount}
-                  </p>
+                  {loading ? (
+                    <Skeleton className="h-9 w-20 mx-auto md:mx-0 mb-1" />
+                  ) : (
+                    <p className="text-3xl font-bold text-primary">
+                      {activeListingsCount}
+                    </p>
+                  )}
                   <p className="text-sm text-muted-foreground">
                     Active Listings
                   </p>

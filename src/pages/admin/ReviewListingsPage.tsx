@@ -12,6 +12,7 @@ import {
 import { ListingApprovalCard } from "@/components/admin/ListingApprovalCard";
 import { ConfirmDialog } from "@/components/dialogs/ConfirmDialog";
 import { useNavigate } from "react-router-dom";
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 
 export default function ReviewListingsPage() {
   const { toast } = useToast();
@@ -114,9 +115,7 @@ export default function ReviewListingsPage() {
       />
 
       {loading ? (
-        <div className="text-center py-12 text-muted-foreground">
-          Loading listings...
-        </div>
+        <LoadingSkeleton variant="grid" count={6} />
       ) : listings.length === 0 ? (
         <EmptyState
           icon={FileText}
