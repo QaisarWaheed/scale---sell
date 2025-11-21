@@ -65,6 +65,20 @@ export const updateUserRole = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Sync with Supabase
+    if (user.supabaseId) {
+      const { error } = await supabase.auth.admin.updateUserById(
+        user.supabaseId,
+        { user_metadata: { role } }
+      );
+
+      if (error) {
+        console.error("Supabase role update error:", error);
+        // Continue to update local DB even if Supabase fails, or handle as needed
+        // For strict sync, we might want to return error here
+      }
+    }
+
     user.role = role;
     const updatedUser = await user.save();
     res.json(updatedUser);
@@ -81,6 +95,15 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
     const user = await User.findById(req.params.id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    // Delete from Supabase
+    if (user.supabaseId) {
+      const { error } = await supabase.auth.admin.deleteUser(user.supabaseId);
+      if (error) {
+        console.error("Supabase delete user error:", error);
+        // Proceed with local delete or handle error
+      }
     }
 
     await user.deleteOne();
@@ -154,6 +177,25 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
     const user = await User.findById(req.params.id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    // Sync with Supabase if email or role changes
+    if (user.supabaseId && (email || role)) {
+      const updates: any = {};
+      if (email) updates.email = email;
+      if (role) updates.user_metadata = { ...updates.user_metadata, role };
+
+      const { error } = await supabase.auth.admin.updateUserById(
+        user.supabaseId,
+        updates
+      );
+
+      if (error) {
+        console.error("Supabase update user error:", error);
+        return res
+          .status(400)
+          .json({ message: `Supabase Error: ${error.message}` });
+      }
     }
 
     // Update fields

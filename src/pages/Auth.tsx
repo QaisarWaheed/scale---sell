@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { PageLayout } from "@/components/layouts/PageLayout";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,6 +32,8 @@ export default function Auth() {
 
   // Sign Up Form
   const [signUpEmail, setSignUpEmail] = useState("");
+  const [signUpName, setSignUpName] = useState("");
+  const [signUpPhone, setSignUpPhone] = useState("");
   const [signUpPassword, setSignUpPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -98,6 +100,8 @@ export default function Auth() {
           emailRedirectTo: redirectUrl,
           data: {
             role: userRole,
+            name: signUpName,
+            phone: signUpPhone,
           },
         },
       });
@@ -123,8 +127,16 @@ export default function Auth() {
   };
 
   return (
-    <PageLayout>
-      <div className="flex-1 flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 bg-background">
+      <div className="absolute top-4 left-4 md:top-8 md:left-8">
+        <Link
+          to="/"
+          className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+        >
+          ← Back to Home
+        </Link>
+      </div>
+      <div className="w-full max-w-md">
         <Card className="w-full max-w-md shadow-lg">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">Welcome to Scale & Sell</CardTitle>
@@ -263,6 +275,6 @@ export default function Auth() {
           </CardFooter>
         </Card>
       </div>
-    </PageLayout>
+    </div>
   );
 }
