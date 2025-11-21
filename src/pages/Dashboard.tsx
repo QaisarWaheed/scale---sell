@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { DashboardHeader } from "@/components/DashboardHeader";
-import { Button } from "@/components/ui/button";
+import { AppSidebar } from "@/components/AppSidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import AdminDashboard from "./AdminDashboard";
@@ -47,11 +46,6 @@ export default function Dashboard() {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -61,15 +55,11 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-muted/30">
-      <DashboardHeader
-        userEmail={user?.email}
-        role={role}
-        onSignOut={handleSignOut}
-      />
+    <div className="flex h-screen overflow-hidden">
+      <AppSidebar role={role} userEmail={user?.email} />
 
-      <main className="flex-1 py-8">
-        <div className="container mx-auto px-4">
+      <main className="flex-1 overflow-y-auto bg-muted/30">
+        <div className="container mx-auto p-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2 capitalize">
               {role} Dashboard

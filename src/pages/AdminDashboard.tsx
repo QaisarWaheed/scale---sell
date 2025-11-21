@@ -1,65 +1,96 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Users, FileText, Settings } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { StatsCard } from "@/components/StatsCard";
+import { Users, FileText, DollarSign, TrendingUp } from "lucide-react";
+import ManageUsersPage from "./admin/ManageUsersPage";
+import ReviewListingsPage from "./admin/ReviewListingsPage";
+import AdminAnalyticsPage from "./admin/AdminAnalyticsPage";
 
 export default function AdminDashboard() {
+  const [searchParams] = useSearchParams();
+  const tab = searchParams.get("tab");
+
+  // Render specific tab content
+  if (tab === "users") return <ManageUsersPage />;
+  if (tab === "listings") return <ReviewListingsPage />;
+  if (tab === "analytics") return <AdminAnalyticsPage />;
+
+  // Default dashboard overview
   return (
-    <div className="space-y-6">
-      <div className="grid md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">1,234</div>
-            <p className="text-xs text-muted-foreground">
-              +20.1% from last month
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Active Listings
-            </CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">573</div>
-            <p className="text-xs text-muted-foreground">
-              +12% from last month
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">System Health</CardTitle>
-            <Settings className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">98.2%</div>
-            <p className="text-xs text-muted-foreground">Uptime</p>
-          </CardContent>
-        </Card>
+    <div className="space-y-8">
+      <div>
+        <h2 className="text-2xl font-bold mb-6">Platform Overview</h2>
+        <div className="grid md:grid-cols-4 gap-6">
+          <StatsCard
+            title="Total Users"
+            value="247"
+            icon={Users}
+            subtitle="Active platform members"
+            trend={{ value: "12% from last month", positive: true }}
+          />
+          <StatsCard
+            title="Active Listings"
+            value="56"
+            icon={FileText}
+            subtitle="Published businesses"
+            trend={{ value: "8% from last month", positive: true }}
+          />
+          <StatsCard
+            title="Total Transactions"
+            value="$2.5M"
+            icon={DollarSign}
+            subtitle="All-time volume"
+            trend={{ value: "23% from last month", positive: true }}
+          />
+          <StatsCard
+            title="Monthly Growth"
+            value="+23%"
+            icon={TrendingUp}
+            subtitle="New users this month"
+            trend={{ value: "5% increase", positive: true }}
+          />
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Admin Actions</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <Button className="w-full justify-start" variant="outline">
-            <Users className="mr-2 h-4 w-4" /> Manage Users
-          </Button>
-          <Button className="w-full justify-start" variant="outline">
-            <FileText className="mr-2 h-4 w-4" /> Review Listings
-          </Button>
-          <Button className="w-full justify-start" variant="outline">
-            <Settings className="mr-2 h-4 w-4" /> Platform Settings
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="p-6 border rounded-lg bg-card">
+          <h3 className="font-semibold mb-4">Recent Activity</h3>
+          <ul className="space-y-3 text-sm">
+            <li className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span>New user registered: john@example.com</span>
+              <span className="ml-auto text-muted-foreground">2h ago</span>
+            </li>
+            <li className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span>Listing approved: SaaS Analytics Platform</span>
+              <span className="ml-auto text-muted-foreground">5h ago</span>
+            </li>
+            <li className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+              <span>Transaction completed: $350k</span>
+              <span className="ml-auto text-muted-foreground">1d ago</span>
+            </li>
+          </ul>
+        </div>
+
+        <div className="p-6 border rounded-lg bg-card">
+          <h3 className="font-semibold mb-4">Pending Actions</h3>
+          <ul className="space-y-3 text-sm">
+            <li className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+              <span>8 listings awaiting review</span>
+            </li>
+            <li className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+              <span>3 user reports to investigate</span>
+            </li>
+            <li className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              <span>2 support tickets open</span>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
   );
 }
