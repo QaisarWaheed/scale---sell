@@ -115,11 +115,25 @@ export default function Browse() {
           </div>
 
           {/* Listings Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {loading ? (
-              <p>Loading listings...</p>
-            ) : (
-              listings.map((listing: any) => (
+          {loading ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div
+                  key={i}
+                  className="bg-card rounded-lg border shadow-sm h-96 animate-pulse"
+                >
+                  <div className="aspect-video w-full bg-muted" />
+                  <div className="p-6 space-y-3">
+                    <div className="h-6 bg-muted rounded w-3/4" />
+                    <div className="h-4 bg-muted rounded w-full" />
+                    <div className="h-4 bg-muted rounded w-2/3" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : listings.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {listings.map((listing: any) => (
                 <ListingCard
                   key={listing._id}
                   id={listing._id}
@@ -132,9 +146,38 @@ export default function Browse() {
                   verified={listing.status === "approved"}
                   // imageUrl={listing.images[0]}
                 />
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <div className="max-w-md mx-auto">
+                <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Search className="h-12 w-12 text-muted-foreground" />
+                </div>
+                <h3 className="text-2xl font-semibold mb-3">
+                  No businesses found
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  We couldn't find any businesses matching your criteria. Try
+                  adjusting your filters or search terms.
+                </p>
+                <div className="flex gap-3 justify-center">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSearchTerm("");
+                      setCategory("all");
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                  <Button asChild>
+                    <a href="/contact">Contact Support</a>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Pagination */}
           <div className="flex justify-center gap-2 mt-8">
