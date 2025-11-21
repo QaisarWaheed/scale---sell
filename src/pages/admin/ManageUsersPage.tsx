@@ -50,6 +50,7 @@ export default function ManageUsersPage() {
   });
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
 
   // Dialog states
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
@@ -200,11 +201,13 @@ export default function ManageUsersPage() {
     setIsConfirmOpen(true);
   };
 
-  const filteredUsers = users.filter(
-    (user) =>
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
       user.profile?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      user.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = roleFilter === "all" || user.role === roleFilter;
+    return matchesSearch && matchesRole;
+  });
 
   return (
     <div className="space-y-8">
@@ -238,14 +241,27 @@ export default function ManageUsersPage() {
       {/* Users Table */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <CardTitle>All Users</CardTitle>
-            <div className="w-64">
-              <SearchBar
-                placeholder="Search users..."
-                value={searchQuery}
-                onChange={setSearchQuery}
-              />
+            <div className="flex items-center gap-2">
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Roles</SelectItem>
+                  <SelectItem value="investor">Investor</SelectItem>
+                  <SelectItem value="seller">Seller</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="w-64">
+                <SearchBar
+                  placeholder="Search users..."
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                />
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -292,21 +308,6 @@ export default function ManageUsersPage() {
                     <Badge variant="outline" className="capitalize">
                       {user.role}
                     </Badge>
-                    <Select
-                      value={user.role}
-                      onValueChange={(value) =>
-                        handleRoleChange(user._id, value)
-                      }
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="investor">Investor</SelectItem>
-                        <SelectItem value="seller">Seller</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
 
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

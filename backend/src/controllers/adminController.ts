@@ -3,6 +3,7 @@ import { AuthRequest } from "../middleware/auth";
 import User from "../models/User";
 import Business from "../models/Business";
 import EscrowTransaction from "../models/EscrowTransaction";
+import { supabase } from "../config/supabase";
 
 // @desc    Get system stats
 // @route   GET /api/admin/stats
@@ -94,15 +95,39 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
 // @access  Private (Admin)
 export const createUser = async (req: AuthRequest, res: Response) => {
   try {
-    const { email, role, name, phone, location } = req.body;
+    const { email, role, name, phone, location, password } = req.body;
 
-    // Check if user already exists
+    // Check if user already exists in MongoDB
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
+    // Create user in Supabase Auth
+    const { data: authData, error: authError } =
+      await supabase.auth.admin.createUser({
+        email,
+        password: password || "TempPass123!", // Default temp password if not provided
+        email_confirm: true,
+        user_metadata: { role: role || "investor" },
+      });
+
+    if (authError) {
+      console.error("Supabase creation error:", authError);
+      return res
+        .status(400)
+        .json({ message: `Supabase Error: ${authError.message}` });
+    }
+
+    if (!authData.user) {
+      return res
+        .status(500)
+        .json({ message: "Failed to create Supabase user" });
+    }
+
+    // Create user in MongoDB with Supabase ID
     const user = await User.create({
+      supabaseId: authData.user.id,
       email,
       role: role || "investor",
       profile: {
@@ -114,6 +139,7 @@ export const createUser = async (req: AuthRequest, res: Response) => {
 
     res.status(201).json(user);
   } catch (error: any) {
+    console.error("Create user error:", error);
     res.status(400).json({ message: error.message });
   }
 };

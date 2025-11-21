@@ -12,6 +12,7 @@ import {
   getAllUsers,
   getAllListings,
   getPendingListings,
+  getSystemStats,
 } from "@/lib/adminApi";
 import { formatCurrency } from "@/lib/utils";
 
@@ -36,11 +37,13 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [users, listings, pendingListings] = await Promise.all([
-          getAllUsers(),
-          getAllListings(),
-          getPendingListings(),
-        ]);
+        const [users, listings, pendingListings, systemStats] =
+          await Promise.all([
+            getAllUsers(),
+            getAllListings(),
+            getPendingListings(),
+            getSystemStats(),
+          ]);
 
         // Calculate Total Users
         const usersCount = users.length;
@@ -66,7 +69,7 @@ export default function AdminDashboard() {
         setStats({
           totalUsers: usersCount,
           activeListings: activeListingsCount,
-          totalTransactions: "$2.5M", // Keeping mock for now as we lack endpoint
+          totalTransactions: formatCurrency(systemStats.totalVolume || 0),
           monthlyGrowth: growth,
         });
 
