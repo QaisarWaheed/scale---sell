@@ -32,23 +32,3 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
     res.status(404).json({ message: "User not found" });
   }
 };
-
-// @desc    Switch user role
-// @route   PUT /api/users/role
-// @access  Private
-export const switchRole = async (req: AuthRequest, res: Response) => {
-  const user = await User.findById(req.user?._id);
-
-  if (user) {
-    const { role } = req.body;
-    if (["investor", "seller", "admin"].includes(role)) {
-      user.role = role;
-      const updatedUser = await user.save();
-      res.json(updatedUser);
-    } else {
-      res.status(400).json({ message: "Invalid role" });
-    }
-  } else {
-    res.status(404).json({ message: "User not found" });
-  }
-};

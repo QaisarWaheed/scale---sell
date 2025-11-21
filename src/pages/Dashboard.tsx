@@ -8,14 +8,6 @@ import { User } from "@supabase/supabase-js";
 import AdminDashboard from "./AdminDashboard";
 import InvestorDashboard from "./InvestorDashboard";
 import SellerDashboard from "./SellerDashboard";
-import api from "@/lib/api";
-import { toast } from "sonner";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
@@ -35,8 +27,7 @@ export default function Dashboard() {
       }
 
       setUser(session.user);
-      // Fetch the role from the backend or use metadata
-      // For now, we'll rely on metadata but sync it if needed
+      // Get role from user metadata
       setRole(session.user.user_metadata.role || "investor");
       setLoading(false);
     };
@@ -62,26 +53,6 @@ export default function Dashboard() {
     navigate("/");
   };
 
-  const handleSwitchRole = async (newRole: string) => {
-    try {
-      // Call backend to update role
-      await api.put("/users/role", { role: newRole });
-
-      // Update local state
-      setRole(newRole);
-
-      // Update Supabase metadata (optional, but good for consistency)
-      await supabase.auth.updateUser({
-        data: { role: newRole },
-      });
-
-      toast.success(`Switched to ${newRole} view`);
-    } catch (error) {
-      console.error("Failed to switch role:", error);
-      toast.error("Failed to switch role");
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -105,29 +76,9 @@ export default function Dashboard() {
                 Welcome back, {user?.email}
               </p>
             </div>
-            <div className="flex gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">Switch Role</Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem
-                    onClick={() => handleSwitchRole("investor")}
-                  >
-                    Investor
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleSwitchRole("seller")}>
-                    Seller
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleSwitchRole("admin")}>
-                    Admin
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button variant="outline" onClick={handleSignOut}>
-                Sign Out
-              </Button>
-            </div>
+            <Button variant="outline" onClick={handleSignOut}>
+              Sign Out
+            </Button>
           </div>
 
           {role === "admin" && <AdminDashboard />}
