@@ -13,6 +13,7 @@ export interface IBusiness extends Document {
   };
   images: string[];
   status: "pending" | "approved" | "rejected" | "sold";
+  views: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,6 +36,7 @@ const BusinessSchema: Schema = new Schema(
       enum: ["pending", "approved", "rejected", "sold"],
       default: "pending",
     },
+    views: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

@@ -119,8 +119,8 @@ export default function Landing() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             <Card className="border-2 hover:border-primary hover:shadow-lg transition-all">
               <CardHeader>
-                <div className="w-12 h-12 rounded-lg bg-primary flex items-center justify-center mb-4">
-                  <Shield className="h-6 w-6 text-primary-foreground" />
+                <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center mb-4">
+                  <Shield className="h-6 w-6 text-secondary-foreground" />
                 </div>
                 <CardTitle>Verified Listings</CardTitle>
                 <CardDescription>
@@ -158,8 +158,8 @@ export default function Landing() {
 
             <Card className="border-2 hover:border-primary hover:shadow-lg transition-all">
               <CardHeader>
-                <div className="w-12 h-12 rounded-lg bg-primary flex items-center justify-center mb-4">
-                  <Users className="h-6 w-6 text-primary-foreground" />
+                <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center mb-4">
+                  <Users className="h-6 w-6 text-accent-foreground" />
                 </div>
                 <CardTitle>Expert Support</CardTitle>
                 <CardDescription>
@@ -245,7 +245,7 @@ export default function Landing() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-12 bg-primary">
+      <section className="py-8 bg-primary">
         <PageContainer className="text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-6">
             Ready to Start Your Journey?
@@ -256,7 +256,7 @@ export default function Landing() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="secondary" size="xl" asChild>
-              <Link to="/auth?mode=signup">Create Free Account</Link>
+              <Link className="hover:bg-white" to="/auth?mode=signup">Create Free Account</Link>
             </Button>
             <Button
               variant="outline"

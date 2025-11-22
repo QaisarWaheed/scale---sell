@@ -33,8 +33,6 @@ const App = () => (
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Landing />} />
-          <Route path="/browse" element={<Browse />} />
-          <Route path="/listing/:id" element={<ListingDetails />} />
           <Route path="/how-it-works" element={<HowItWorks />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
@@ -46,6 +44,22 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/browse"
+            element={
+              <ProtectedRoute>
+                <Browse />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/listing/:id"
+            element={
+              <ProtectedRoute>
+                <ListingDetails />
               </ProtectedRoute>
             }
           />

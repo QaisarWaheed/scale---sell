@@ -45,13 +45,14 @@ export default function InvestorDashboard() {
         // Calculate Active Offers (buyer, status pending/negotiation)
         const activeOffersCount = transactions.filter(
           (t: any) =>
-            t.buyerId._id === user.id &&
+            t.buyerId?.supabaseId === user.id &&
             ["pending", "negotiation"].includes(t.status)
         ).length;
 
         // Calculate Active Deals (buyer, status in_progress)
         const activeDealsCount = transactions.filter(
-          (t: any) => t.buyerId._id === user.id && t.status === "in_progress"
+          (t: any) =>
+            t.buyerId?.supabaseId === user.id && t.status === "in_progress"
         ).length;
 
         // Calculate Messages (total threads for now)
