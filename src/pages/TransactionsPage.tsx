@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { SectionHeader } from "@/components/layouts/SectionHeader";
 import { StatsCard } from "@/components/StatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,8 +13,9 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getTransactions } from "@/lib/transactionApi";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, getErrorMessage } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { Offer } from "@/types";
 
 const statusConfig = {
   completed: {
@@ -32,12 +33,22 @@ const statusConfig = {
     color: "bg-yellow-100 text-yellow-800",
     icon: Clock,
   },
+  accepted: {
+    label: "Accepted",
+    color: "bg-green-100 text-green-800",
+    icon: CheckCircle,
+  },
+  rejected: {
+    label: "Rejected",
+    color: "bg-red-100 text-red-800",
+    icon: XCircle,
+  },
   failed: { label: "Failed", color: "bg-red-100 text-red-800", icon: XCircle },
 };
 
 export default function TransactionsPage() {
   const { toast } = useToast();
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [stats, setStats] = useState({
@@ -47,36 +58,7 @@ export default function TransactionsPage() {
     pending: 0,
   });
 
-  useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setCurrentUserId(user?.id || null);
-    };
-    getUser();
-    fetchTransactions();
-  }, []);
-
-  const fetchTransactions = async () => {
-    try {
-      setLoading(true);
-      const data = await getTransactions();
-      setTransactions(data);
-      calculateStats(data);
-    } catch (error: any) {
-      toast({
-        title: "Error fetching transactions",
-        description:
-          error.response?.data?.message || "Failed to load transactions",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const calculateStats = (data: any[]) => {
+  const calculateStats = (data: Offer[]) => {
     const newStats = data.reduce(
       (acc, txn) => {
         if (txn.status === "completed") {
@@ -94,11 +76,52 @@ export default function TransactionsPage() {
     setStats(newStats);
   };
 
-  const getOtherPartyName = (txn: any) => {
+  const fetchTransactions = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await getTransactions();
+      setTransactions(data);
+      calculateStats(data);
+    } catch (error) {
+      toast({
+        title: "Error fetching transactions",
+        description: getErrorMessage(error),
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    };
+    getUser();
+    fetchTransactions();
+  }, [fetchTransactions]);
+
+  const getOtherPartyName = (txn: Offer) => {
     if (!currentUserId) return "User";
-    return txn.buyerId?._id === currentUserId
-      ? txn.sellerId?.profile?.name || "Seller"
-      : txn.buyerId?.profile?.name || "Buyer";
+
+    // Check if buyerId is populated object or string ID
+    const buyerId =
+      typeof txn.buyerId === "object" ? txn.buyerId._id : txn.buyerId;
+
+    if (buyerId === currentUserId) {
+      // Current user is buyer, return seller name
+      return typeof txn.sellerId === "object" && txn.sellerId.profile
+        ? txn.sellerId.profile.name
+        : "Seller";
+    } else {
+      // Current user is seller (or other), return buyer name
+      return typeof txn.buyerId === "object" && txn.buyerId.profile
+        ? txn.buyerId.profile.name
+        : "Buyer";
+    }
   };
 
   return (
@@ -177,9 +200,15 @@ export default function TransactionsPage() {
                         </div>
                         <div>
                           <span className="font-medium">
-                            {transaction.buyerId?._id === currentUserId
-                              ? "Seller"
-                              : "Buyer"}
+                            {(() => {
+                              const buyerId =
+                                typeof transaction.buyerId === "object"
+                                  ? transaction.buyerId._id
+                                  : transaction.buyerId;
+                              return buyerId === currentUserId
+                                ? "Seller"
+                                : "Buyer";
+                            })()}
                             :
                           </span>{" "}
                           {getOtherPartyName(transaction)}
@@ -195,7 +224,9 @@ export default function TransactionsPage() {
                         {formatCurrency(transaction.amount)}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {new Date(transaction.updatedAt).toLocaleDateString()}
+                        {transaction.updatedAt
+                          ? new Date(transaction.updatedAt).toLocaleDateString()
+                          : "N/A"}
                       </div>
                       <Button variant="outline" size="sm" className="mt-2">
                         View Details

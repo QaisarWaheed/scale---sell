@@ -1,4 +1,9 @@
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, MapPin, DollarSign } from "lucide-react";
@@ -87,7 +92,11 @@ export const ListingCard = ({
       </CardContent>
 
       <CardFooter>
-        <Button variant="outline" asChild className="w-full group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-colors">
+        <Button
+          variant="outline"
+          asChild
+          className="w-full group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all duration-300"
+        >
           <Link to={`/listing/${id}`}>View Details</Link>
         </Button>
       </CardFooter>

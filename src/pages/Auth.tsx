@@ -17,6 +17,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Building2, TrendingUp, Eye, EyeOff } from "lucide-react";
+import { getErrorMessage } from "@/lib/utils";
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
@@ -63,11 +64,12 @@ export default function Auth() {
       });
 
       navigate("/dashboard");
-    } catch (error: any) {
+    } catch (error) {
+      const message = getErrorMessage(error);
       // Check if error is due to unverified email
       if (
-        error.message?.includes("Email not confirmed") ||
-        error.message?.includes("not verified")
+        message.includes("Email not confirmed") ||
+        message.includes("not verified")
       ) {
         setShowResendLink(true);
         toast({
@@ -79,8 +81,7 @@ export default function Auth() {
       } else {
         toast({
           title: "Sign in failed",
-          description:
-            error.message || "Please check your credentials and try again.",
+          description: message,
           variant: "destructive",
         });
       }
@@ -114,10 +115,10 @@ export default function Auth() {
         description: "Please check your inbox for the verification link.",
       });
       setShowResendLink(false);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Failed to resend email",
-        description: error.message || "Please try again later.",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     } finally {
@@ -173,11 +174,10 @@ export default function Auth() {
       });
 
       navigate("/");
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Sign up failed",
-        description:
-          error.message || "Unable to create account. Please try again.",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     } finally {

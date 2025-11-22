@@ -1,10 +1,26 @@
 import api from "./api";
 
+export interface PopulatedUser {
+  _id: string;
+  email: string;
+  profile?: {
+    name?: string;
+    phone?: string;
+    location?: string;
+    avatarUrl?: string;
+  };
+}
+
+export interface PopulatedBusiness {
+  _id: string;
+  title: string;
+}
+
 export interface EscrowTransaction {
   _id: string;
-  buyerId: any;
-  sellerId: any;
-  businessId: any;
+  buyerId: string | PopulatedUser;
+  sellerId: string | PopulatedUser;
+  businessId: string | PopulatedBusiness;
   amount: number;
   status: "pending" | "holding" | "released" | "cancelled";
   logs: {

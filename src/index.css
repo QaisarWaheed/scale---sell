@@ -65,6 +65,24 @@ All colors MUST be HSL.
     --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
     --tracking-normal: 0em;
     --spacing: 0.25rem;
+
+    /* Gradients using theme colors */
+    --gradient-primary: linear-gradient(
+      135deg,
+      var(--primary) 0%,
+      var(--accent) 100%
+    );
+    --gradient-accent: linear-gradient(
+      135deg,
+      var(--accent) 0%,
+      var(--primary) 100%
+    );
+    --gradient-hero: linear-gradient(
+      135deg,
+      var(--primary) 0%,
+      var(--secondary) 100%
+    );
+    --shadow-premium: 0 10px 40px -10px hsl(0 0% 0% / 0.25);
   }
 
   .dark {
@@ -123,6 +141,24 @@ All colors MUST be HSL.
     --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1),
       0 8px 10px -1px hsl(0 0% 0% / 0.1);
     --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+
+    /* Gradients using theme colors */
+    --gradient-primary: linear-gradient(
+      135deg,
+      var(--primary) 0%,
+      var(--accent) 100%
+    );
+    --gradient-accent: linear-gradient(
+      135deg,
+      var(--accent) 0%,
+      var(--primary) 100%
+    );
+    --gradient-hero: linear-gradient(
+      135deg,
+      var(--primary) 0%,
+      var(--secondary) 100%
+    );
+    --shadow-premium: 0 10px 40px -10px hsl(0 0% 0% / 0.5);
   }
   body {
     letter-spacing: var(--tracking-normal);

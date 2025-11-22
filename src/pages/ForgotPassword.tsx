@@ -13,6 +13,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Mail } from "lucide-react";
+import { getErrorMessage } from "@/lib/utils";
 
 export default function ForgotPassword() {
   const { toast } = useToast();
@@ -46,10 +47,10 @@ export default function ForgotPassword() {
         title: "Reset email sent!",
         description: "Check your inbox for password reset instructions.",
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Failed to send reset email",
-        description: error.message || "Please try again later.",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     } finally {

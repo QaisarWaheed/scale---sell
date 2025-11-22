@@ -13,6 +13,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff, Lock } from "lucide-react";
+import { getErrorMessage } from "@/lib/utils";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -61,11 +62,10 @@ export default function ResetPassword() {
 
       // Redirect to dashboard after successful password reset
       navigate("/dashboard");
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Failed to update password",
-        description:
-          error.message || "Please try the password reset process again.",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     } finally {

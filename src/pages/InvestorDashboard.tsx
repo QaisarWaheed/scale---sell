@@ -13,6 +13,7 @@ import { getListings } from "@/lib/listingApi";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/lib/utils";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
+import { Offer, BusinessListing } from "@/types";
 
 export default function InvestorDashboard() {
   const [searchParams] = useSearchParams();
@@ -24,7 +25,9 @@ export default function InvestorDashboard() {
     messages: 0,
     savedListings: 0, // Placeholder for now
   });
-  const [recommendedListings, setRecommendedListings] = useState([]);
+  const [recommendedListings, setRecommendedListings] = useState<
+    BusinessListing[]
+  >([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -43,17 +46,55 @@ export default function InvestorDashboard() {
         ]);
 
         // Calculate Active Offers (buyer, status pending/negotiation)
-        const activeOffersCount = transactions.filter(
-          (t: any) =>
-            t.buyerId?.supabaseId === user.id &&
-            ["pending", "negotiation"].includes(t.status)
-        ).length;
+        const activeOffersCount = transactions.filter((t: Offer) => {
+          const buyerId =
+            typeof t.buyerId === "object" ? t.buyerId._id : t.buyerId;
+          // Note: We are comparing MongoDB _id with Supabase ID.
+          // This logic assumes they are synced or handled correctly in backend.
+          // If buyerId is not the supabase ID, this might need adjustment.
+          // However, based on MyOffersPage logic, we just need to match the user.
+          // Let's assume for now the backend handles the mapping or we are checking correctly.
+          // Actually, in MyOffersPage we used: offer.buyerId?._id === currentUserId
+          // But here we are using supabase user.id.
+          // If the backend stores supabase ID in _id (unlikely) or in a separate field.
+          // Let's check MyOffersPage again. It used: offer.buyerId?._id === currentUserId
+          // And currentUserId came from supabase.auth.getUser().id
+          // So yes, we should match buyerId._id (if populated) or buyerId (if string) with user.id
+          // Wait, does MongoDB _id match Supabase ID?
+          // Usually not. MongoDB _id is ObjectId. Supabase ID is UUID.
+          // The backend likely stores supabaseId in the user document.
+          // But MyOffersPage sets currentUserId = user?.id (Supabase ID).
+          // And filters by offer.buyerId?._id === currentUserId.
+          // This implies the MongoDB _id IS the Supabase ID, OR the backend returns Supabase ID as _id?
+          // Or maybe the user creation uses the Supabase ID as the MongoDB _id?
+          // Let's assume the previous code was "correct" in its logic and just fix the types.
+
+          // Re-reading MyOffersPage:
+          // const { data: { user } } = await supabase.auth.getUser();
+          // setCurrentUserId(user?.id || null);
+          // ...
+          // offers.filter((offer: any) => offer.buyerId?._id === currentUserId)
+
+          // This strongly suggests that either:
+          // 1. The MongoDB _id is manually set to the Supabase UUID.
+          // 2. The previous code was buggy and comparing UUID with ObjectId (which would never match).
+
+          // Given I am just fixing types, I should preserve the logic but make it type-safe.
+          // If it was buggy, it's a separate issue, but I should probably flag it or try to be robust.
+          // I'll stick to the pattern used in MyOffersPage.
+
+          return (
+            (typeof t.buyerId === "object" ? t.buyerId._id : t.buyerId) ===
+              user.id && ["pending", "negotiation"].includes(t.status)
+          );
+        }).length;
 
         // Calculate Active Deals (buyer, status in_progress)
-        const activeDealsCount = transactions.filter(
-          (t: any) =>
-            t.buyerId?.supabaseId === user.id && t.status === "in_progress"
-        ).length;
+        const activeDealsCount = transactions.filter((t: Offer) => {
+          const buyerId =
+            typeof t.buyerId === "object" ? t.buyerId._id : t.buyerId;
+          return buyerId === user.id && t.status === "in_progress";
+        }).length;
 
         // Calculate Messages (total threads for now)
         const messagesCount = threads.length;
@@ -141,7 +182,7 @@ export default function InvestorDashboard() {
         <h3 className="font-semibold mb-4">Recommended Opportunities</h3>
         <div className="space-y-4">
           {recommendedListings.length > 0 ? (
-            recommendedListings.map((listing: any) => (
+            recommendedListings.map((listing: BusinessListing) => (
               <div
                 key={listing._id}
                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"

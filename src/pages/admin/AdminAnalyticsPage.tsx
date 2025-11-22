@@ -1,13 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { SectionHeader } from "@/components/layouts/SectionHeader";
 import { StatsCard } from "@/components/StatsCard";
 import { Users, Building2, DollarSign, Activity } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getSystemStats } from "@/lib/adminApi";
+import { getErrorMessage } from "@/lib/utils";
+import { DashboardStats } from "@/types";
 
 export default function AdminAnalyticsPage() {
   const { toast } = useToast();
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     totalListings: 0,
     activeListings: 0,
@@ -15,26 +17,25 @@ export default function AdminAnalyticsPage() {
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getSystemStats();
       setStats(data);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error fetching stats",
-        description:
-          error.response?.data?.message || "Failed to load analytics",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
 
   return (
     <div className="space-y-8">

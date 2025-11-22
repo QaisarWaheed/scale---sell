@@ -19,16 +19,10 @@ import {
 } from "@/lib/escrowApi";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import {
-  CheckCircle2,
-  Clock,
-  AlertCircle,
-  DollarSign,
-  FileText,
-  ArrowLeft,
-} from "lucide-react";
+import { CheckCircle2, Clock, DollarSign, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { getErrorMessage } from "@/lib/utils";
 
 export default function EscrowTransaction() {
   const { id } = useParams<{ id: string }>();
@@ -87,11 +81,11 @@ export default function EscrowTransaction() {
         title: "Status Updated",
         description: `Transaction status changed to ${newStatus}.`,
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error updating status:", error);
       toast({
         title: "Error",
-        description: "Failed to update status.",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     }
@@ -179,7 +173,10 @@ export default function EscrowTransaction() {
                 <div className="p-4 bg-muted/50 rounded-lg">
                   <p className="text-sm text-muted-foreground mb-1">Business</p>
                   <p className="font-semibold truncate">
-                    {transaction.businessId?.title || "Unknown Business"}
+                    {transaction.businessId &&
+                    typeof transaction.businessId === "object"
+                      ? transaction.businessId.title
+                      : "Unknown Business"}
                   </p>
                 </div>
                 <div className="p-4 bg-muted/50 rounded-lg">
@@ -188,8 +185,14 @@ export default function EscrowTransaction() {
                   </p>
                   <p className="font-semibold">
                     {role === "investor"
-                      ? transaction.sellerId?.profile?.name || "Seller"
-                      : transaction.buyerId?.profile?.name || "Buyer"}
+                      ? transaction.sellerId &&
+                        typeof transaction.sellerId === "object"
+                        ? transaction.sellerId.profile?.name || "Seller"
+                        : "Seller"
+                      : transaction.buyerId &&
+                        typeof transaction.buyerId === "object"
+                      ? transaction.buyerId.profile?.name || "Buyer"
+                      : "Buyer"}
                   </p>
                 </div>
               </div>

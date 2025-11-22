@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { SectionHeader } from "@/components/layouts/SectionHeader";
 import { StatsCard } from "@/components/StatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,9 +14,10 @@ import {
 import { EmptyState } from "@/components/EmptyState";
 import { useToast } from "@/hooks/use-toast";
 import { getTransactions } from "@/lib/transactionApi";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, getErrorMessage } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { Offer } from "@/types";
 
 const statusConfig = {
   pending: { label: "Pending", color: "bg-yellow-100 text-yellow-800" },
@@ -25,12 +26,13 @@ const statusConfig = {
   in_escrow: { label: "In Escrow", color: "bg-blue-100 text-blue-800" },
   completed: { label: "Completed", color: "bg-green-100 text-green-800" },
   failed: { label: "Failed", color: "bg-red-100 text-red-800" },
+  negotiation: { label: "Negotiation", color: "bg-purple-100 text-purple-800" },
 };
 
 export default function MyOffersPage() {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [offers, setOffers] = useState<any[]>([]);
+  const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [stats, setStats] = useState({
@@ -40,18 +42,7 @@ export default function MyOffersPage() {
     avgOfferDiscount: "0%", // Placeholder
   });
 
-  useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setCurrentUserId(user?.id || null);
-    };
-    getUser();
-    fetchOffers();
-  }, []);
-
-  const fetchOffers = async () => {
+  const fetchOffers = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getTransactions();
@@ -70,23 +61,39 @@ export default function MyOffersPage() {
       setOffers(data);
 
       const active = data.filter(
-        (o: any) => o.status === "pending" || o.status === "in_escrow"
+        (o: Offer) => o.status === "pending" || o.status === "in_escrow"
       ).length;
       setStats((prev) => ({ ...prev, activeOffers: active }));
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error fetching offers",
-        description: error.response?.data?.message || "Failed to load offers",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    };
+    getUser();
+    fetchOffers();
+  }, [fetchOffers]);
 
   // Filter offers where user is buyer
   const myOffers = currentUserId
-    ? offers.filter((offer: any) => offer.buyerId?._id === currentUserId)
+    ? offers.filter((offer: Offer) => {
+        // Handle both populated object and string ID cases
+        const buyerId =
+          typeof offer.buyerId === "object" ? offer.buyerId._id : offer.buyerId;
+        return buyerId === currentUserId;
+      })
     : [];
 
   return (
@@ -136,6 +143,20 @@ export default function MyOffersPage() {
                   color: "bg-gray-100 text-gray-800",
                 };
 
+                // Helper to safely get nested properties
+                const businessTitle =
+                  typeof offer.businessId === "object"
+                    ? offer.businessId.title
+                    : "Unknown Business";
+                const sellerName =
+                  typeof offer.sellerId === "object" && offer.sellerId.profile
+                    ? offer.sellerId.profile.name
+                    : "Unknown";
+                const askingPrice =
+                  typeof offer.businessId === "object"
+                    ? offer.businessId.financials?.askingPrice
+                    : undefined;
+
                 return (
                   <div
                     key={offer._id}
@@ -144,7 +165,7 @@ export default function MyOffersPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="font-semibold text-lg">
-                          {offer.businessId?.title || "Unknown Business"}
+                          {businessTitle}
                         </h3>
                         <Badge className={statusInfo.color}>
                           {statusInfo.label}
@@ -153,15 +174,11 @@ export default function MyOffersPage() {
                       <div className="grid grid-cols-3 gap-4 text-sm text-muted-foreground">
                         <div>
                           <span className="font-medium">Seller:</span>{" "}
-                          {offer.sellerId?.profile?.name || "Unknown"}
+                          {sellerName}
                         </div>
                         <div>
                           <span className="font-medium">Asking Price:</span>{" "}
-                          {offer.businessId?.financials?.askingPrice
-                            ? formatCurrency(
-                                offer.businessId.financials.askingPrice
-                              )
-                            : "N/A"}
+                          {askingPrice ? formatCurrency(askingPrice) : "N/A"}
                         </div>
                         <div>
                           <span className="font-medium">Submitted:</span>{" "}

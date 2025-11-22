@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface AppSidebarProps {
   role: string;
@@ -144,6 +145,13 @@ export function AppSidebar({ role, userEmail, userName }: AppSidebarProps) {
             </p>
           </div>
         )}
+        <ThemeToggle
+          compact={collapsed}
+          className={cn(
+            "w-full mb-2",
+            collapsed ? "justify-center px-2" : "justify-start"
+          )}
+        />
         <Button
           variant="ghost"
           onClick={handleSignOut}

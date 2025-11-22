@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { SectionHeader } from "@/components/layouts/SectionHeader";
 import { SearchBar } from "@/components/ui/search-bar";
 import { StatsCard } from "@/components/StatsCard";
@@ -39,10 +39,12 @@ import {
 import { UserDialog, UserFormData } from "@/components/dialogs/UserDialog";
 import { ConfirmDialog } from "@/components/dialogs/ConfirmDialog";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
+import { User } from "@/types";
+import { getErrorMessage } from "@/lib/utils";
 
 export default function ManageUsersPage() {
   const { toast } = useToast();
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeUsers: 0,
@@ -63,11 +65,7 @@ export default function ManageUsersPage() {
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const [usersData, statsData] = await Promise.all([
@@ -79,18 +77,22 @@ export default function ManageUsersPage() {
         totalUsers: statsData.totalUsers,
         activeUsers: statsData.activeListings, // Using active listings as proxy for active users for now
         newThisMonth: 0, // Not implemented in backend yet
-        admins: usersData.filter((u: any) => u.role === "admin").length,
+        admins: usersData.filter((u: User) => u.role === "admin").length,
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error fetching data",
-        description: error.response?.data?.message || "Failed to load users",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleCreateUser = async (data: UserFormData) => {
     try {
@@ -102,10 +104,10 @@ export default function ManageUsersPage() {
       });
       setIsUserDialogOpen(false);
       fetchData();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error creating user",
-        description: error.response?.data?.message || "Failed to create user",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     } finally {
@@ -124,10 +126,10 @@ export default function ManageUsersPage() {
       });
       setIsUserDialogOpen(false);
       fetchData();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error updating user",
-        description: error.response?.data?.message || "Failed to update user",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     } finally {
@@ -146,10 +148,10 @@ export default function ManageUsersPage() {
       });
       setIsConfirmOpen(false);
       fetchData();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error deleting user",
-        description: error.response?.data?.message || "Failed to delete user",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     } finally {
@@ -162,17 +164,19 @@ export default function ManageUsersPage() {
       await updateUserRole(userId, newRole);
       setUsers(
         users.map((user) =>
-          user._id === userId ? { ...user, role: newRole } : user
+          user._id === userId
+            ? { ...user, role: newRole as "investor" | "seller" | "admin" }
+            : user
         )
       );
       toast({
         title: "Role updated",
         description: `User role changed to ${newRole}`,
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error updating role",
-        description: error.response?.data?.message || "Failed to update role",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     }
@@ -184,7 +188,7 @@ export default function ManageUsersPage() {
     setIsUserDialogOpen(true);
   };
 
-  const openEditDialog = (user: any) => {
+  const openEditDialog = (user: User) => {
     setUserDialogMode("edit");
     setSelectedUser({
       _id: user._id,

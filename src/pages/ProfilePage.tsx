@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { SectionHeader } from "@/components/layouts/SectionHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,9 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User, Phone, MapPin, Building2, Save } from "lucide-react";
+import { User as UserIcon, Phone, MapPin, Building2, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getProfile, updateProfile } from "@/lib/userApi";
+import { getErrorMessage } from "@/lib/utils";
+import { User } from "@/types";
 
 export default function ProfilePage() {
   const { toast } = useToast();
@@ -26,14 +28,10 @@ export default function ProfilePage() {
     avatarUrl: "",
   });
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
-      const user = await getProfile();
+      const user: User = await getProfile();
       setFormData({
         fullName: user.profile?.name || "",
         email: user.email || "",
@@ -42,31 +40,34 @@ export default function ProfilePage() {
         company: user.profile?.company || "",
         bio: user.profile?.bio || "",
         role: user.role || "investor",
-        avatarUrl: user.profile?.avatarUrl || "",
+        avatarUrl: "", // user.profile?.avatarUrl is not in User type yet, assuming it might be added or handled differently
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error fetching profile",
-        description: error.response?.data?.message || "Failed to load profile",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setSaving(true);
-      const updatedUser = await updateProfile({
+      const updatedUser: User = await updateProfile({
         profile: {
           name: formData.fullName,
           phone: formData.phone,
           location: formData.location,
           company: formData.company,
           bio: formData.bio,
-          avatarUrl: formData.avatarUrl,
         },
       });
 
@@ -83,13 +84,11 @@ export default function ProfilePage() {
         location: updatedUser.profile?.location || prev.location,
         company: updatedUser.profile?.company || prev.company,
         bio: updatedUser.profile?.bio || prev.bio,
-        avatarUrl: updatedUser.profile?.avatarUrl || prev.avatarUrl,
       }));
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error updating profile",
-        description:
-          error.response?.data?.message || "Failed to update profile",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     } finally {
@@ -131,7 +130,7 @@ export default function ProfilePage() {
                 {formData.email}
               </p>
               <Button variant="outline" className="w-full mb-2">
-                <User className="h-4 w-4 mr-2" />
+                <UserIcon className="h-4 w-4 mr-2" />
                 Change Avatar
               </Button>
               <div className="w-full mt-6 space-y-3 text-sm">

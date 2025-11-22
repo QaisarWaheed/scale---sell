@@ -11,22 +11,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import {
   MapPin,
-  DollarSign,
   TrendingUp,
   Users,
   Calendar,
-  Globe,
   ArrowLeft,
   ShieldCheck,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { initiateTransaction } from "@/lib/escrowApi";
+import { getErrorMessage } from "@/lib/utils";
+import { BusinessListing } from "@/types";
 
 export default function ListingDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [listing, setListing] = useState<any>(null);
+  const [listing, setListing] = useState<BusinessListing | null>(null);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<string>("");
@@ -69,6 +69,8 @@ export default function ListingDetails() {
       return;
     }
 
+    if (!listing) return;
+
     try {
       const transaction = await initiateTransaction(
         listing._id,
@@ -79,12 +81,11 @@ export default function ListingDetails() {
         description: "Escrow transaction initiated!",
       });
       navigate(`/dashboard/escrow/${transaction._id}`);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error starting escrow:", error);
       toast({
         title: "Error",
-        description:
-          error.response?.data?.message || "Failed to initiate escrow.",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     }
@@ -182,7 +183,7 @@ export default function ListingDetails() {
                 <CardContent>
                   <div className="flex items-center gap-2 text-lg font-semibold">
                     <Calendar className="h-5 w-5 text-primary" />
-                    {listing.details?.yearEstablished || "N/A"}
+                    {listing.yearEstablished || "N/A"}
                   </div>
                 </CardContent>
               </Card>
@@ -195,7 +196,7 @@ export default function ListingDetails() {
                 <CardContent>
                   <div className="flex items-center gap-2 text-lg font-semibold">
                     <Users className="h-5 w-5 text-primary" />
-                    {listing.details?.employees || "N/A"}
+                    {listing.employees || "N/A"}
                   </div>
                 </CardContent>
               </Card>

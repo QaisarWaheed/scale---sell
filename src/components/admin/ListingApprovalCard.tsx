@@ -8,9 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Check, X, Eye, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import type { BusinessListing } from "@/types/listing";
 
 interface ListingApprovalCardProps {
-  listing: any;
+  listing: BusinessListing;
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
   onDelete: (id: string) => void;

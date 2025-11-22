@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { getMyListings } from "@/lib/listingApi";
 import { getThreads } from "@/lib/messageApi";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
+import { BusinessListing } from "@/types";
 
 export default function SellerDashboard() {
   const [searchParams] = useSearchParams();
@@ -20,7 +21,9 @@ export default function SellerDashboard() {
     inquiries: 0,
     performance: "0%",
   });
-  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [recentActivity, setRecentActivity] = useState<
+    { type: string; message: string; time: string; color: string }[]
+  >([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,7 +39,7 @@ export default function SellerDashboard() {
 
         // Calculate Total Views (sum of views from all listings)
         const viewsCount = listings.reduce(
-          (acc: number, curr: any) => acc + (curr.views || 0),
+          (acc: number, curr: BusinessListing) => acc + (curr.views || 0),
           0
         );
 
@@ -45,7 +48,7 @@ export default function SellerDashboard() {
 
         // Calculate Performance (simple metric: % of listings with > 0 views)
         const activeListings = listings.filter(
-          (l: any) => (l.views || 0) > 0
+          (l: BusinessListing) => (l.views || 0) > 0
         ).length;
         const performanceScore =
           listingsCount > 0
@@ -60,8 +63,7 @@ export default function SellerDashboard() {
         });
 
         // Generate Recent Activity from listings (e.g. newly created)
-        // This is a simplified version. Ideally we'd have an activity log endpoint.
-        const activity = listings.slice(0, 3).map((l: any) => ({
+        const activity = listings.slice(0, 3).map((l: BusinessListing) => ({
           type: "listing",
           message: `Listing "${l.title}" is active`,
           time: new Date(l.createdAt).toLocaleDateString(),

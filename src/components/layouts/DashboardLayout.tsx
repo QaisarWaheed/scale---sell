@@ -25,17 +25,23 @@ export function DashboardLayout({
   className,
 }: DashboardLayoutProps) {
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen w-full overflow-hidden bg-background">
       <AppSidebar role={role} userEmail={userEmail} userName={userName} />
 
       <main className="flex-1 overflow-y-auto bg-muted/30">
-        <div className={cn("container mx-auto p-8", className)}>
+        <div className={cn("container mx-auto p-6 md:p-8", className)}>
           {(title || subtitle) && (
-            <div className="mb-8">
+            <div className="mb-6 md:mb-8">
               {title && (
-                <h1 className="text-3xl font-bold mb-2 capitalize">{title}</h1>
+                <h1 className="text-2xl md:text-3xl font-bold mb-2 capitalize text-foreground">
+                  {title}
+                </h1>
               )}
-              {subtitle && <p className="text-muted-foreground">{subtitle}</p>}
+              {subtitle && (
+                <p className="text-sm md:text-base text-muted-foreground">
+                  {subtitle}
+                </p>
+              )}
             </div>
           )}
           {children}

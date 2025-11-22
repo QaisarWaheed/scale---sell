@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Building2, Menu } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { ThemeToggle } from "./ThemeToggle";
 
 export const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -71,6 +72,7 @@ export const Header = () => {
           </nav>
 
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             {isAuthenticated ? (
               <Button variant="premium" asChild>
                 <Link to="/dashboard">Dashboard</Link>
@@ -125,6 +127,9 @@ export const Header = () => {
             >
               Contact
             </Link>
+            <div className="pt-2 border-t border-border">
+              <ThemeToggle className="w-full justify-start mb-2" />
+            </div>
             <div className="flex flex-col gap-2 pt-2">
               {isAuthenticated ? (
                 <Button variant="premium" asChild className="w-full">

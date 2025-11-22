@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { PageLayout } from "@/components/layouts/PageLayout";
 import { PageContainer } from "@/components/layouts/PageContainer";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
@@ -20,6 +20,7 @@ import { getListings } from "@/lib/listingApi";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { BusinessListing, ListingQueryParams } from "@/types";
 
 export default function Browse() {
   const [user, setUser] = useState<User | null>(null);
@@ -78,7 +79,7 @@ export default function Browse() {
 }
 
 function BrowseContent() {
-  const [listings, setListings] = useState([]);
+  const [listings, setListings] = useState<BusinessListing[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState("all");
   const [priceRange, setPriceRange] = useState("any");
@@ -86,14 +87,10 @@ function BrowseContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
 
-  useEffect(() => {
-    fetchListings();
-  }, [searchTerm, category, priceRange]);
-
-  const fetchListings = async () => {
+  const fetchListings = useCallback(async () => {
     try {
       setLoading(true);
-      const params: any = {
+      const params: ListingQueryParams = {
         search: searchTerm,
         category: category === "all" ? undefined : category,
       };
@@ -120,7 +117,11 @@ function BrowseContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, category, priceRange]);
+
+  useEffect(() => {
+    fetchListings();
+  }, [fetchListings]);
 
   return (
     <>
@@ -176,7 +177,7 @@ function BrowseContent() {
         <LoadingSkeleton variant="card" count={6} className="mb-8" />
       ) : listings.length > 0 ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {listings.map((listing: any) => (
+          {listings.map((listing) => (
             <ListingCard
               key={listing._id}
               id={listing._id}

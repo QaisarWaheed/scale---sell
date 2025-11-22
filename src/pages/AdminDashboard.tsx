@@ -16,6 +16,7 @@ import {
 } from "@/lib/adminApi";
 import { formatCurrency } from "@/lib/utils";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
+import { User, BusinessListing } from "@/types";
 
 export default function AdminDashboard() {
   const [searchParams] = useSearchParams();
@@ -32,7 +33,9 @@ export default function AdminDashboard() {
     userReports: 0,
     supportTickets: 0,
   });
-  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [recentActivity, setRecentActivity] = useState<
+    { message: string; time: string; color: string }[]
+  >([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -51,14 +54,14 @@ export default function AdminDashboard() {
 
         // Calculate Active Listings (status = approved)
         const activeListingsCount = listings.filter(
-          (l: any) => l.status === "approved"
+          (l: BusinessListing) => l.status === "approved"
         ).length;
 
         // Calculate Monthly Growth (users created this month)
         const now = new Date();
         const thisMonth = now.getMonth();
         const thisYear = now.getFullYear();
-        const newUsersCount = users.filter((u: any) => {
+        const newUsersCount = users.filter((u: User) => {
           const d = new Date(u.createdAt);
           return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
         }).length;
@@ -81,16 +84,18 @@ export default function AdminDashboard() {
         });
 
         // Generate Recent Activity (mix of new users and listings)
-        const recentUsers = users.slice(0, 2).map((u: any) => ({
+        const recentUsers = users.slice(0, 2).map((u: User) => ({
           message: `New user registered: ${u.email}`,
           time: new Date(u.createdAt).toLocaleDateString(),
           color: "bg-green-500",
         }));
-        const recentListings = listings.slice(0, 2).map((l: any) => ({
-          message: `Listing ${l.status}: ${l.title}`,
-          time: new Date(l.createdAt).toLocaleDateString(),
-          color: "bg-blue-500",
-        }));
+        const recentListings = listings
+          .slice(0, 2)
+          .map((l: BusinessListing) => ({
+            message: `Listing ${l.status}: ${l.title}`,
+            time: new Date(l.createdAt).toLocaleDateString(),
+            color: "bg-blue-500",
+          }));
 
         setRecentActivity([...recentUsers, ...recentListings].slice(0, 5));
       } catch (error) {
