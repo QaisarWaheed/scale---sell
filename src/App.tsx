@@ -13,6 +13,9 @@ import HowItWorks from "./pages/HowItWorks";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
+import ListingDetails from "./pages/ListingDetails";
+import EscrowTransaction from "./pages/EscrowTransaction";
+import CreateListing from "./pages/CreateListing";
 
 // Protected Pages
 import Dashboard from "./pages/Dashboard";
@@ -31,6 +34,7 @@ const App = () => (
           {/* Public Routes */}
           <Route path="/" element={<Landing />} />
           <Route path="/browse" element={<Browse />} />
+          <Route path="/listing/:id" element={<ListingDetails />} />
           <Route path="/how-it-works" element={<HowItWorks />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
@@ -42,6 +46,22 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/escrow/:id"
+            element={
+              <ProtectedRoute>
+                <EscrowTransaction />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/sell-business"
+            element={
+              <ProtectedRoute>
+                <CreateListing />
               </ProtectedRoute>
             }
           />
