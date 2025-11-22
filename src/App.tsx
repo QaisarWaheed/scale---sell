@@ -16,6 +16,8 @@ import NotFound from "./pages/NotFound";
 import ListingDetails from "./pages/ListingDetails";
 import EscrowTransaction from "./pages/EscrowTransaction";
 import CreateListing from "./pages/CreateListing";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 // Protected Pages
 import Dashboard from "./pages/Dashboard";
@@ -37,6 +39,8 @@ const App = () => (
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Protected Routes */}
           <Route

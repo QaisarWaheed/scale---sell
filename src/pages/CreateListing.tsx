@@ -107,7 +107,7 @@ export default function CreateListing() {
         title: "Success",
         description: "Listing created successfully!",
       });
-      navigate("/dashboard/my-listings");
+      navigate("/dashboard?tab=listings");
     } catch (error: any) {
       console.error("Error creating listing:", error);
       toast({
@@ -129,7 +129,7 @@ export default function CreateListing() {
         <Button
           variant="ghost"
           className="mb-6 pl-0"
-          onClick={() => navigate("/dashboard/my-listings")}
+          onClick={() => navigate("/dashboard?tab=listings")}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to My Listings
@@ -316,7 +316,7 @@ export default function CreateListing() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate("/dashboard/my-listings")}
+              onClick={() => navigate("/dashboard?tab=listings")}
             >
               Cancel
             </Button>

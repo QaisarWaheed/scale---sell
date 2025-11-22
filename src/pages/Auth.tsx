@@ -24,6 +24,8 @@ export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [showResendLink, setShowResendLink] = useState(false);
   const [userRole, setUserRole] = useState<"seller" | "investor">("investor");
 
   // Sign In Form
@@ -45,6 +47,7 @@ export default function Auth() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setShowResendLink(false);
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -61,14 +64,64 @@ export default function Auth() {
 
       navigate("/dashboard");
     } catch (error: any) {
+      // Check if error is due to unverified email
+      if (
+        error.message?.includes("Email not confirmed") ||
+        error.message?.includes("not verified")
+      ) {
+        setShowResendLink(true);
+        toast({
+          title: "Email not verified",
+          description:
+            "Please verify your email address. Check your inbox or resend the verification email.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Sign in failed",
+          description:
+            error.message || "Please check your credentials and try again.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!signInEmail) {
       toast({
-        title: "Sign in failed",
-        description:
-          error.message || "Please check your credentials and try again.",
+        title: "Email required",
+        description: "Please enter your email address first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setResendLoading(true);
+
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: signInEmail,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Verification email sent!",
+        description: "Please check your inbox for the verification link.",
+      });
+      setShowResendLink(false);
+    } catch (error: any) {
+      toast({
+        title: "Failed to resend email",
+        description: error.message || "Please try again later.",
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setResendLoading(false);
     }
   };
 
@@ -106,6 +159,7 @@ export default function Auth() {
           data: {
             role: userRole,
             name: signUpName,
+            full_name: signUpName, // Supabase uses 'full_name' for display name
             phone: signUpPhone,
           },
         },
@@ -173,7 +227,15 @@ export default function Auth() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="signin-password">Password</Label>
+                      <Link
+                        to="/forgot-password"
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
                     <div className="relative">
                       <Input
                         id="signin-password"
@@ -202,6 +264,25 @@ export default function Auth() {
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? "Signing in..." : "Sign In"}
                   </Button>
+                  {showResendLink && (
+                    <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                      <p className="text-xs text-amber-800 dark:text-amber-200 mb-2 text-center">
+                        Didn't receive verification email?
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={handleResendVerification}
+                        disabled={resendLoading}
+                      >
+                        {resendLoading
+                          ? "Sending..."
+                          : "Resend Verification Email"}
+                      </Button>
+                    </div>
+                  )}
                 </form>
               </TabsContent>
 

@@ -50,6 +50,7 @@ async function createVerifiedUser(options: CreateUserOptions) {
         email_confirm: emailConfirmed,
         user_metadata: {
           role,
+          name,
           full_name: name,
         },
       });

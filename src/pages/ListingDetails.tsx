@@ -248,7 +248,7 @@ export default function ListingDetails() {
                   <Button
                     className="w-full mt-6"
                     variant="outline"
-                    onClick={() => navigate(`/dashboard/my-listings`)}
+                    onClick={() => navigate(`/dashboard?tab=listings`)}
                   >
                     Manage Listing
                   </Button>

@@ -132,7 +132,12 @@ export const createUser = async (req: AuthRequest, res: Response) => {
         email,
         password: password || "TempPass123!", // Default temp password if not provided
         email_confirm: true,
-        user_metadata: { role: role || "investor" },
+        user_metadata: {
+          role: role || "investor",
+          name,
+          full_name: name, // Supabase uses 'full_name' for display name
+          phone,
+        },
       });
 
     if (authError) {
@@ -172,18 +177,27 @@ export const createUser = async (req: AuthRequest, res: Response) => {
 // @access  Private (Admin)
 export const updateUser = async (req: AuthRequest, res: Response) => {
   try {
-    const { email, role, name, phone, location, avatarUrl } = req.body;
+    const { email, role, name, phone, location, avatarUrl, password } =
+      req.body;
 
     const user = await User.findById(req.params.id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Sync with Supabase if email or role changes
-    if (user.supabaseId && (email || role)) {
+    // Sync with Supabase if email, role, or password changes
+    if (user.supabaseId && (email || role || password)) {
       const updates: any = {};
       if (email) updates.email = email;
-      if (role) updates.user_metadata = { ...updates.user_metadata, role };
+      if (password) updates.password = password;
+      if (role || name) {
+        updates.user_metadata = {};
+        if (role) updates.user_metadata.role = role;
+        if (name) {
+          updates.user_metadata.name = name;
+          updates.user_metadata.full_name = name;
+        }
+      }
 
       const { error } = await supabase.auth.admin.updateUserById(
         user.supabaseId,
