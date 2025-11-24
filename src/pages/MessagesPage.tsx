@@ -56,10 +56,10 @@ export default function MessagesPage() {
   }, [fetchThreads]);
 
   const fetchMessages = useCallback(
-    async (businessId: string) => {
+    async (threadId: string) => {
       try {
         setMessagesLoading(true);
-        const data = await getMessages(businessId);
+        const data = await getMessages(threadId);
         setMessages(data);
       } catch (error) {
         console.error("Error fetching messages:", error);
@@ -77,14 +77,7 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (selectedThread) {
-      // Assuming businessId is populated and has _id
-      const businessId =
-        typeof selectedThread.businessId === "object"
-          ? selectedThread.businessId._id
-          : selectedThread.businessId;
-      if (businessId) {
-        fetchMessages(businessId);
-      }
+      fetchMessages(selectedThread._id);
     }
   }, [selectedThread, fetchMessages]);
 
@@ -100,32 +93,37 @@ export default function MessagesPage() {
     if (!newMessage.trim() || !selectedThread || !currentUserId) return;
 
     try {
-      // Determine receiver ID based on who the current user is
-      // If current user is the buyer (investor), receiver is seller
-      // If current user is the seller, receiver is the buyer (investor)
+      // Get the other participant (not the current user)
+      const otherParticipant = selectedThread.participants.find((p) => {
+        const participantId = typeof p === "object" ? p._id : p;
+        return participantId !== currentUserId;
+      });
 
-      // We need to safely access nested properties
-      const business = selectedThread.businessId as BusinessListing;
-      const seller = business.sellerId as User;
-      const sender = selectedThread.senderId as User; // Assuming senderId is populated in thread
-
-      // Fallback logic if types are not fully populated as expected
-      const sellerId = typeof seller === "object" ? seller._id : seller;
-      const senderId = typeof sender === "object" ? sender._id : sender;
+      if (!otherParticipant) {
+        toast({
+          title: "Error",
+          description: "Could not find recipient",
+          variant: "destructive",
+        });
+        return;
+      }
 
       const receiverId =
-        sellerId === currentUserId
-          ? senderId // If I am seller, send to sender (investor)
-          : sellerId; // If I am investor, send to seller
+        typeof otherParticipant === "object"
+          ? otherParticipant._id
+          : otherParticipant;
+
+      const business = selectedThread.businessId as BusinessListing;
 
       await sendMessage({
         businessId: business._id,
         content: newMessage,
-        receiverId: receiverId as string,
+        receiverId,
       });
 
       setNewMessage("");
-      fetchMessages(business._id);
+      fetchMessages(selectedThread._id);
+      fetchThreads(); // Refresh threads to update last message
     } catch (error) {
       console.error("Error sending message:", error);
       toast({
@@ -144,20 +142,19 @@ export default function MessagesPage() {
   const getOtherParticipantName = (thread: Thread) => {
     if (!currentUserId) return "User";
 
-    const business = thread.businessId as BusinessListing;
-    const seller = business.sellerId as User;
-    const sellerId = typeof seller === "object" ? seller._id : seller;
+    // Find the participant who is NOT the current user
+    const otherParticipant = thread.participants.find((p) => {
+      const participantId = typeof p === "object" ? p._id : p;
+      return participantId !== currentUserId;
+    });
 
-    // If I am the seller, show the investor's name
-    if (sellerId === currentUserId) {
-      // The thread aggregation in backend might need adjustment to include investor info clearly
-      // For now, let's use a placeholder or available info
-      return "Investor";
+    if (!otherParticipant) return "User";
+
+    if (typeof otherParticipant === "object") {
+      return otherParticipant.profile?.name || otherParticipant.email || "User";
     }
-    // If I am the investor, show the business/seller name
-    return typeof seller === "object" && seller.profile
-      ? seller.profile.name || "Seller"
-      : "Seller";
+
+    return "User";
   };
 
   return (

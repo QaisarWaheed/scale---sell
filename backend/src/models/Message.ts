@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IMessage extends Document {
+  threadId: mongoose.Types.ObjectId;
   senderId: mongoose.Types.ObjectId;
   receiverId: mongoose.Types.ObjectId;
   businessId: mongoose.Types.ObjectId;
@@ -12,6 +13,7 @@ export interface IMessage extends Document {
 
 const MessageSchema: Schema = new Schema(
   {
+    threadId: { type: Schema.Types.ObjectId, ref: "Thread", required: true },
     senderId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     receiverId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     businessId: {

@@ -6,9 +6,9 @@ export const getThreads = async () => {
   return response.data;
 };
 
-// Get messages for a specific business
-export const getMessages = async (businessId: string) => {
-  const response = await api.get(`/messages/${businessId}`);
+// Get messages for a specific thread
+export const getMessages = async (threadId: string) => {
+  const response = await api.get(`/messages/thread/${threadId}`);
   return response.data;
 };
 

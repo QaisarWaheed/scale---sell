@@ -67,11 +67,7 @@ export interface Thread {
   businessId: BusinessListing; // Usually populated
   participants: (User | string)[]; // Array of users or IDs
   lastMessage?: Message;
+  unreadCounts?: Map<string, number>;
+  createdAt: string;
   updatedAt: string;
-  // Based on usage in MessagesPage, it seems to have senderId sometimes?
-  // Or maybe we need to adjust based on actual API response.
-  // MessagesPage uses: thread.businessId.sellerId._id and thread.senderId._id
-  // Let's assume the structure based on usage.
-  senderId?: User; // The one who started the thread?
-  receiverId?: User;
 }

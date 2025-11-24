@@ -193,7 +193,7 @@ export default function MyListingsPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => navigate(`/listings/${listing._id}`)}
+                      onClick={() => navigate(`/listing/${listing._id}`)}
                     >
                       <Eye className="h-4 w-4 mr-2" />
                       View

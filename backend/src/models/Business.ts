@@ -46,7 +46,7 @@ const BusinessSchema: Schema = new Schema(
     status: {
       type: String,
       enum: ["pending", "approved", "rejected", "sold"],
-      default: "pending",
+      default: "approved",
     },
     views: { type: Number, default: 0 },
   },
