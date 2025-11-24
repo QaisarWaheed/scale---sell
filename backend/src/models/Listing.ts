@@ -45,7 +45,7 @@ const ListingSchema = new Schema<IListing>(
     status: {
       type: String,
       enum: ["pending", "approved", "rejected"],
-      default: "pending",
+      default: "approved",
     },
     seller: { type: Schema.Types.ObjectId, ref: "User", required: true },
     images: [{ type: String }],

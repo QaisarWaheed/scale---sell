@@ -3,35 +3,26 @@ import { SectionHeader } from "@/components/layouts/SectionHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  CheckCircle,
-  XCircle,
-  Eye,
-  MapPin,
-  DollarSign,
-  Briefcase,
-} from "lucide-react";
+import { Trash2, Eye, MapPin, DollarSign, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import {
-  getPendingListings,
-  approveListing,
-  rejectListing,
-} from "@/lib/adminApi";
+import { getAllListings, deleteListing } from "@/lib/adminApi";
 import { formatCurrency } from "@/lib/utils";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { getErrorMessage } from "@/lib/utils";
 import { BusinessListing } from "@/types";
+import { ConfirmDialog } from "@/components/dialogs/ConfirmDialog";
 
 export default function ReviewListingsPage() {
   const { toast } = useToast();
   const [listings, setListings] = useState<BusinessListing[]>([]);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [listingToDelete, setListingToDelete] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const fetchListings = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await getPendingListings();
+      const data = await getAllListings();
       setListings(data);
     } catch (error) {
       console.error("Error fetching listings:", error);
@@ -49,56 +40,38 @@ export default function ReviewListingsPage() {
     fetchListings();
   }, [fetchListings]);
 
-  const handleApprove = async (id: string) => {
+  const handleDelete = async () => {
+    if (!listingToDelete) return;
     try {
-      setActionLoading(id);
-      await approveListing(id);
+      setActionLoading(true);
+      await deleteListing(listingToDelete);
       toast({
-        title: "Listing approved",
-        description: "The listing is now live on the platform.",
+        title: "Listing deleted",
+        description: "The listing has been removed.",
       });
+      setListingToDelete(null);
       fetchListings();
     } catch (error) {
       toast({
-        title: "Error approving listing",
+        title: "Error deleting listing",
         description: getErrorMessage(error),
         variant: "destructive",
       });
     } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleReject = async (id: string) => {
-    try {
-      setActionLoading(id);
-      await rejectListing(id);
-      toast({
-        title: "Listing rejected",
-        description: "The listing has been rejected.",
-      });
-      fetchListings();
-    } catch (error) {
-      toast({
-        title: "Error rejecting listing",
-        description: getErrorMessage(error),
-        variant: "destructive",
-      });
-    } finally {
-      setActionLoading(null);
+      setActionLoading(false);
     }
   };
 
   return (
     <div className="space-y-8">
       <SectionHeader
-        title="Review Listings"
-        subtitle="Approve or reject pending business listings"
+        title="Manage Listings"
+        subtitle="View and manage all business listings"
       />
 
       <Card>
         <CardHeader>
-          <CardTitle>Pending Listings ({listings.length})</CardTitle>
+          <CardTitle>All Listings ({listings.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -106,7 +79,7 @@ export default function ReviewListingsPage() {
               <LoadingSkeleton variant="list" count={3} />
             ) : listings.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
-                No pending listings to review
+                No listings found
               </div>
             ) : (
               listings.map((listing) => (
@@ -116,9 +89,20 @@ export default function ReviewListingsPage() {
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">
-                        {listing.title}
-                      </h3>
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-xl font-semibold">
+                          {listing.title}
+                        </h3>
+                        <Badge
+                          variant={
+                            listing.status === "approved"
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
+                          {listing.status}
+                        </Badge>
+                      </div>
                       <div className="flex flex-wrap gap-2 text-sm text-muted-foreground mb-4">
                         <Badge
                           variant="secondary"
@@ -149,21 +133,11 @@ export default function ReviewListingsPage() {
                     <div className="flex flex-col gap-2">
                       <Button
                         size="sm"
-                        className="bg-green-600 hover:bg-green-700"
-                        onClick={() => handleApprove(listing._id)}
-                        disabled={actionLoading === listing._id}
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Approve
-                      </Button>
-                      <Button
-                        size="sm"
                         variant="destructive"
-                        onClick={() => handleReject(listing._id)}
-                        disabled={actionLoading === listing._id}
+                        onClick={() => setListingToDelete(listing._id)}
                       >
-                        <XCircle className="w-4 h-4 mr-2" />
-                        Reject
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
                       </Button>
                       <Button size="sm" variant="outline">
                         <Eye className="w-4 h-4 mr-2" />
@@ -199,6 +173,16 @@ export default function ReviewListingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={!!listingToDelete}
+        onOpenChange={(open) => !open && setListingToDelete(null)}
+        title="Delete Listing"
+        description="Are you sure you want to delete this listing? This action cannot be undone."
+        onConfirm={handleDelete}
+        variant="destructive"
+        confirmText={actionLoading ? "Deleting..." : "Delete"}
+      />
     </div>
   );
 }

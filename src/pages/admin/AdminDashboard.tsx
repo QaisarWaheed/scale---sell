@@ -13,12 +13,7 @@ import ReviewListingsPage from "./ReviewListingsPage";
 import AdminAnalyticsPage from "./AdminAnalyticsPage";
 import MessagesPage from "../MessagesPage";
 import TransactionsPage from "../TransactionsPage";
-import {
-  getAllUsers,
-  getAllListings,
-  getPendingListings,
-  getSystemStats,
-} from "@/lib/adminApi";
+import { getAllUsers, getAllListings, getSystemStats } from "@/lib/adminApi";
 import { formatCurrency } from "@/lib/utils";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { User, BusinessListing } from "@/types";
@@ -46,13 +41,11 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [users, listings, pendingListings, systemStats] =
-          await Promise.all([
-            getAllUsers(),
-            getAllListings(),
-            getPendingListings(),
-            getSystemStats(),
-          ]);
+        const [users, listings, systemStats] = await Promise.all([
+          getAllUsers(),
+          getAllListings(),
+          getSystemStats(),
+        ]);
 
         // Calculate Total Users
         const usersCount = users.length;
@@ -83,7 +76,7 @@ export default function AdminDashboard() {
         });
 
         setPendingActions({
-          listingsReview: pendingListings.length,
+          listingsReview: 0,
           userReports: 0,
           supportTickets: 0,
         });
@@ -207,12 +200,6 @@ export default function AdminDashboard() {
         <div className="p-6 border rounded-lg bg-card">
           <h3 className="font-semibold mb-4">Pending Actions</h3>
           <ul className="space-y-3 text-sm">
-            <li className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              <span>
-                {pendingActions.listingsReview} listings awaiting review
-              </span>
-            </li>
             <li className="flex items-center gap-3">
               <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
               <span>

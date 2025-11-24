@@ -238,7 +238,7 @@ export default function ListingDetails() {
                 <CardContent>
                   <div className="flex items-center gap-2 text-lg font-semibold">
                     <Calendar className="h-5 w-5 text-primary" />
-                    {listing.yearEstablished || "N/A"}
+                    {listing.details?.yearEstablished || "N/A"}
                   </div>
                 </CardContent>
               </Card>
@@ -251,7 +251,7 @@ export default function ListingDetails() {
                 <CardContent>
                   <div className="flex items-center gap-2 text-lg font-semibold">
                     <Users className="h-5 w-5 text-primary" />
-                    {listing.employees || "N/A"}
+                    {listing.details?.employees || "N/A"}
                   </div>
                 </CardContent>
               </Card>
