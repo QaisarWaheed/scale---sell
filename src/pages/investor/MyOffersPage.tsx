@@ -217,7 +217,7 @@ export default function MyOffersPage() {
           description="Browse opportunities and make your first offer to get started"
           action={{
             label: "Browse Opportunities",
-            onClick: () => navigate("/buy-business"),
+            onClick: () => navigate("/browse"),
           }}
         />
       )}
