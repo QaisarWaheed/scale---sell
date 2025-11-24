@@ -25,8 +25,11 @@ export const getSystemStats = async (req: AuthRequest, res: Response) => {
       { $group: { _id: null, total: { $sum: "$amount" } } },
     ]);
 
+    const totalListings = await Business.countDocuments();
+
     res.json({
       totalUsers,
+      totalListings,
       activeListings,
       pendingListings,
       completedDeals,

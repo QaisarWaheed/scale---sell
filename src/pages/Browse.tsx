@@ -176,7 +176,7 @@ function BrowseContent() {
       {loading ? (
         <LoadingSkeleton variant="card" count={6} className="mb-8" />
       ) : listings.length > 0 ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 ">
           {listings.map((listing) => (
             <ListingCard
               key={listing._id}
