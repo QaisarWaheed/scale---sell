@@ -45,6 +45,7 @@ export const protect = async (
           profile: {
             name: user.user_metadata?.full_name || "",
           },
+          savedListings: [],
         });
 
         console.log(`Created new user in MongoDB with role: ${userRole}`);

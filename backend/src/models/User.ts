@@ -12,6 +12,7 @@ export interface IUser extends Document {
   };
   createdAt: Date;
   updatedAt: Date;
+  savedListings: mongoose.Types.ObjectId[];
 }
 
 const UserSchema: Schema = new Schema(
@@ -29,6 +30,7 @@ const UserSchema: Schema = new Schema(
       location: String,
       avatarUrl: String,
     },
+    savedListings: [{ type: Schema.Types.ObjectId, ref: "Listing" }],
   },
   { timestamps: true }
 );

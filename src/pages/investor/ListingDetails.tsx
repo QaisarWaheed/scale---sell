@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { getListingById } from "@/lib/listingApi";
+import { toggleSavedListing, getSavedListings } from "@/lib/userApi";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import {
@@ -16,6 +17,7 @@ import {
   Calendar,
   ArrowLeft,
   ShieldCheck,
+  Heart,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { initiateTransaction } from "@/lib/escrowApi";
@@ -30,6 +32,8 @@ export default function ListingDetails() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<string>("");
+  const [isSaved, setIsSaved] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -41,6 +45,16 @@ export default function ListingDetails() {
         if (session) {
           setUser(session.user);
           setRole(session.user.user_metadata.role || "investor");
+
+          // Check if saved
+          if (id) {
+            const savedListings = await getSavedListings();
+            const isSavedListing = savedListings.some(
+              (l: BusinessListing | string) =>
+                typeof l === "string" ? l === id : l._id === id
+            );
+            setIsSaved(isSavedListing);
+          }
         }
 
         // Get Listing
@@ -91,6 +105,34 @@ export default function ListingDetails() {
     }
   };
 
+  const handleToggleSave = async () => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    if (!listing) return;
+
+    try {
+      setSaveLoading(true);
+      await toggleSavedListing(listing._id);
+      setIsSaved(!isSaved);
+      toast({
+        title: isSaved ? "Removed from saved" : "Saved to dashboard",
+        description: isSaved
+          ? "Listing removed from your saved items."
+          : "Listing saved to your dashboard.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update saved status.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
   if (loading) {
     return <LoadingSpinner centered />;
   }
@@ -113,14 +155,27 @@ export default function ListingDetails() {
   return (
     <PageLayout>
       <PageContainer className="py-8">
-        <Button
-          variant="ghost"
-          className="mb-6 pl-0"
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
+        <div className="flex items-center justify-between mb-6">
+          <Button variant="ghost" className="pl-0" onClick={() => navigate(-1)}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
+          </Button>
+          {role === "investor" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleToggleSave}
+              disabled={saveLoading}
+            >
+              <Heart
+                className={`mr-2 h-4 w-4 ${
+                  isSaved ? "fill-primary text-primary" : ""
+                }`}
+              />
+              {isSaved ? "Saved" : "Save Listing"}
+            </Button>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}

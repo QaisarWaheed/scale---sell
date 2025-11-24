@@ -12,7 +12,6 @@ import {
   TrendingUp,
   MoreVertical,
   Trash2,
-  Edit,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -30,13 +29,10 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import {
   getAllUsers,
-  createUser,
-  updateUser,
   updateUserRole,
   deleteUser,
   getSystemStats,
 } from "@/lib/adminApi";
-import { UserDialog, UserFormData } from "@/components/dialogs/UserDialog";
 import { ConfirmDialog } from "@/components/dialogs/ConfirmDialog";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { User } from "@/types";
@@ -56,11 +52,6 @@ export default function ManageUsersPage() {
   const [roleFilter, setRoleFilter] = useState<string>("all");
 
   // Dialog states
-  const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
-  const [userDialogMode, setUserDialogMode] = useState<"create" | "edit">(
-    "create"
-  );
-  const [selectedUser, setSelectedUser] = useState<UserFormData | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -93,49 +84,6 @@ export default function ManageUsersPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  const handleCreateUser = async (data: UserFormData) => {
-    try {
-      setActionLoading(true);
-      await createUser(data);
-      toast({
-        title: "User created",
-        description: "New user has been successfully created.",
-      });
-      setIsUserDialogOpen(false);
-      fetchData();
-    } catch (error) {
-      toast({
-        title: "Error creating user",
-        description: getErrorMessage(error),
-        variant: "destructive",
-      });
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleUpdateUser = async (data: UserFormData) => {
-    if (!selectedUser?._id) return;
-    try {
-      setActionLoading(true);
-      await updateUser(selectedUser._id, data);
-      toast({
-        title: "User updated",
-        description: "User information has been updated.",
-      });
-      setIsUserDialogOpen(false);
-      fetchData();
-    } catch (error) {
-      toast({
-        title: "Error updating user",
-        description: getErrorMessage(error),
-        variant: "destructive",
-      });
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   const handleDeleteUser = async () => {
     if (!userToDelete) return;
@@ -182,25 +130,6 @@ export default function ManageUsersPage() {
     }
   };
 
-  const openCreateDialog = () => {
-    setUserDialogMode("create");
-    setSelectedUser(null);
-    setIsUserDialogOpen(true);
-  };
-
-  const openEditDialog = (user: User) => {
-    setUserDialogMode("edit");
-    setSelectedUser({
-      _id: user._id,
-      email: user.email,
-      role: user.role,
-      name: user.profile?.name,
-      phone: user.profile?.phone,
-      location: user.profile?.location,
-    });
-    setIsUserDialogOpen(true);
-  };
-
   const openDeleteDialog = (userId: string) => {
     setUserToDelete(userId);
     setIsConfirmOpen(true);
@@ -219,12 +148,6 @@ export default function ManageUsersPage() {
       <SectionHeader
         title="Manage Users"
         subtitle="View and manage all platform users"
-        action={
-          <Button onClick={openCreateDialog}>
-            <UserPlus className="h-4 w-4 mr-2" />
-            Add User
-          </Button>
-        }
       />
 
       {/* Stats */}
@@ -319,10 +242,6 @@ export default function ManageUsersPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openEditDialog(user)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit Details
-                        </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
                           onClick={() => openDeleteDialog(user._id)}
@@ -339,17 +258,6 @@ export default function ManageUsersPage() {
           </div>
         </CardContent>
       </Card>
-
-      <UserDialog
-        open={isUserDialogOpen}
-        onOpenChange={setIsUserDialogOpen}
-        onSubmit={
-          userDialogMode === "create" ? handleCreateUser : handleUpdateUser
-        }
-        user={selectedUser}
-        mode={userDialogMode}
-        loading={actionLoading}
-      />
 
       <ConfirmDialog
         open={isConfirmOpen}

@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { getTransactions } from "@/lib/transactionApi";
 import { getThreads } from "@/lib/messageApi";
 import { getListings } from "@/lib/listingApi";
+import { getSavedListings } from "@/lib/userApi";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/lib/utils";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
@@ -23,11 +24,14 @@ export default function InvestorDashboard() {
     activeOffers: 0,
     activeDeals: 0,
     messages: 0,
-    savedListings: 0, // Placeholder for now
+    savedListings: 0,
   });
   const [recommendedListings, setRecommendedListings] = useState<
     BusinessListing[]
   >([]);
+  const [savedListingsData, setSavedListingsData] = useState<BusinessListing[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,50 +43,15 @@ export default function InvestorDashboard() {
 
         if (!user) return;
 
-        const [transactions, threads, listings] = await Promise.all([
+        const [transactions, threads, listings, saved] = await Promise.all([
           getTransactions(),
           getThreads(),
           getListings(),
+          getSavedListings(),
         ]);
 
         // Calculate Active Offers (buyer, status pending/negotiation)
         const activeOffersCount = transactions.filter((t: Offer) => {
-          const buyerId =
-            typeof t.buyerId === "object" ? t.buyerId._id : t.buyerId;
-          // Note: We are comparing MongoDB _id with Supabase ID.
-          // This logic assumes they are synced or handled correctly in backend.
-          // If buyerId is not the supabase ID, this might need adjustment.
-          // However, based on MyOffersPage logic, we just need to match the user.
-          // Let's assume for now the backend handles the mapping or we are checking correctly.
-          // Actually, in MyOffersPage we used: offer.buyerId?._id === currentUserId
-          // But here we are using supabase user.id.
-          // If the backend stores supabase ID in _id (unlikely) or in a separate field.
-          // Let's check MyOffersPage again. It used: offer.buyerId?._id === currentUserId
-          // And currentUserId came from supabase.auth.getUser().id
-          // So yes, we should match buyerId._id (if populated) or buyerId (if string) with user.id
-          // Wait, does MongoDB _id match Supabase ID?
-          // Usually not. MongoDB _id is ObjectId. Supabase ID is UUID.
-          // The backend likely stores supabaseId in the user document.
-          // But MyOffersPage sets currentUserId = user?.id (Supabase ID).
-          // And filters by offer.buyerId?._id === currentUserId.
-          // This implies the MongoDB _id IS the Supabase ID, OR the backend returns Supabase ID as _id?
-          // Or maybe the user creation uses the Supabase ID as the MongoDB _id?
-          // Let's assume the previous code was "correct" in its logic and just fix the types.
-
-          // Re-reading MyOffersPage:
-          // const { data: { user } } = await supabase.auth.getUser();
-          // setCurrentUserId(user?.id || null);
-          // ...
-          // offers.filter((offer: any) => offer.buyerId?._id === currentUserId)
-
-          // This strongly suggests that either:
-          // 1. The MongoDB _id is manually set to the Supabase UUID.
-          // 2. The previous code was buggy and comparing UUID with ObjectId (which would never match).
-
-          // Given I am just fixing types, I should preserve the logic but make it type-safe.
-          // If it was buggy, it's a separate issue, but I should probably flag it or try to be robust.
-          // I'll stick to the pattern used in MyOffersPage.
-
           return (
             (typeof t.buyerId === "object" ? t.buyerId._id : t.buyerId) ===
               user.id && ["pending", "negotiation"].includes(t.status)
@@ -103,11 +72,12 @@ export default function InvestorDashboard() {
           activeOffers: activeOffersCount,
           activeDeals: activeDealsCount,
           messages: messagesCount,
-          savedListings: 0,
+          savedListings: saved.length,
         });
 
+        setSavedListingsData(saved);
+
         // Get Recommended Opportunities (top 3 active listings, excluding own if any)
-        // Simple logic: just take first 3 for now
         setRecommendedListings(listings.slice(0, 3));
       } catch (error) {
         console.error("Failed to fetch dashboard data", error);
@@ -123,6 +93,55 @@ export default function InvestorDashboard() {
   if (tab === "offers") return <MyOffersPage />;
   if (tab === "messages") return <MessagesPage />;
   if (tab === "transactions") return <TransactionsPage />;
+  if (tab === "saved") {
+    return (
+      <div className="space-y-6">
+        <SectionHeader
+          title="Saved Listings"
+          subtitle="Your bookmarked opportunities"
+        />
+        {loading ? (
+          <LoadingSkeleton variant="list" count={3} />
+        ) : savedListingsData.length > 0 ? (
+          <div className="grid gap-4">
+            {savedListingsData.map((listing) => (
+              <div
+                key={listing._id}
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+              >
+                <div className="flex-1">
+                  <h4 className="font-semibold mb-1">{listing.title}</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {listing.category} •{" "}
+                    {formatCurrency(listing.financials.revenue)} Revenue
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-primary mb-1">
+                    {formatCurrency(listing.financials.askingPrice)}
+                  </div>
+                  <Button size="sm" asChild>
+                    <Link to={`/listing/${listing._id}`}>View Details</Link>
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 border rounded-lg bg-muted/10">
+            <Heart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No saved listings</h3>
+            <p className="text-muted-foreground mb-4">
+              Start browsing to find opportunities you like.
+            </p>
+            <Button asChild>
+              <Link to="/browse">Browse Listings</Link>
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -151,12 +170,15 @@ export default function InvestorDashboard() {
           subtitle="Track your investment opportunities"
         />
         <div className="grid md:grid-cols-4 gap-6">
-          <StatsCard
-            title="Saved Listings"
-            value={stats.savedListings.toString()}
-            icon={Heart}
-            subtitle="Opportunities tracked"
-          />
+          <Link to="/dashboard?tab=saved">
+            <StatsCard
+              title="Saved Listings"
+              value={stats.savedListings.toString()}
+              icon={Heart}
+              subtitle="Opportunities tracked"
+              className="hover:border-primary/50 transition-colors cursor-pointer"
+            />
+          </Link>
           <StatsCard
             title="Active Offers"
             value={stats.activeOffers.toString()}
@@ -199,7 +221,7 @@ export default function InvestorDashboard() {
                     {formatCurrency(listing.financials.askingPrice)}
                   </div>
                   <Button size="sm" asChild>
-                    <Link to={`/browse`}>View Details</Link>
+                    <Link to={`/listing/${listing._id}`}>View Details</Link>
                   </Button>
                 </div>
               </div>
