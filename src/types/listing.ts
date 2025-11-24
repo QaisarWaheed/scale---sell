@@ -56,6 +56,8 @@ export interface CreateListingData {
   challenges?: string[];
   employees?: number;
   yearEstablished?: number;
+  website?: string;
+  reasonForSelling?: string;
   images?: string[];
   documents?: string[];
 }

@@ -2,12 +2,17 @@ import { useSearchParams } from "react-router-dom";
 import { SectionHeader } from "@/components/layouts/SectionHeader";
 import { StatsCard } from "@/components/StatsCard";
 import { Users, FileText, DollarSign, TrendingUp } from "lucide-react";
-import ManageUsersPage from "./admin/ManageUsersPage";
-import ReviewListingsPage from "./admin/ReviewListingsPage";
-import AdminAnalyticsPage from "./admin/AdminAnalyticsPage";
-import MessagesPage from "./MessagesPage";
-import TransactionsPage from "./TransactionsPage";
+// // import ManageUsersPage from "./admin/ManageUsersPage";
+// import ReviewListingsPage from "./admin/ReviewListingsPage";
+// import AdminAnalyticsPage from "./admin/AdminAnalyticsPage";
+// import MessagesPage from "./MessagesPage";
+// import TransactionsPage from "./TransactionsPage";
 import { useEffect, useState } from "react";
+import ManageUsersPage from "./ManageUsersPage";
+import ReviewListingsPage from "./ReviewListingsPage";
+import AdminAnalyticsPage from "./AdminAnalyticsPage";
+import MessagesPage from "../MessagesPage";
+import TransactionsPage from "../TransactionsPage";
 import {
   getAllUsers,
   getAllListings,

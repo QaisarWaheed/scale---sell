@@ -109,7 +109,7 @@ export default function MyListingsPage() {
         action={
           <Button onClick={() => navigate("/sell-business")}>
             <Plus className="h-4 w-4 mr-2" />
-            Create Listing
+            Create Listings
           </Button>
         }
       />

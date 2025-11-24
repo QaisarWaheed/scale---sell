@@ -7,14 +7,14 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ThemeProvider } from "@/hooks/use-theme";
 
 // Public Pages
-import Landing from "./pages/Landing";
+import Landing from "./pages/landing/Landing";
 import Browse from "./pages/Browse";
 import Auth from "./pages/Auth";
-import HowItWorks from "./pages/HowItWorks";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
+import HowItWorks from "./pages/landing/HowItWorks";
+import About from "./pages/landing/About";
+import Contact from "./pages/landing/Contact";
 import NotFound from "./pages/NotFound";
-import ListingDetails from "./pages/ListingDetails";
+import ListingDetails from "./pages/investor/ListingDetails";
 import EscrowTransaction from "./pages/EscrowTransaction";
 import CreateListing from "./pages/CreateListing";
 import ForgotPassword from "./pages/ForgotPassword";

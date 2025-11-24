@@ -4,9 +4,9 @@ import { DashboardLayout } from "@/components/layouts/DashboardLayout";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import AdminDashboard from "./AdminDashboard";
-import InvestorDashboard from "./InvestorDashboard";
-import SellerDashboard from "./SellerDashboard";
+import AdminDashboard from "./admin/AdminDashboard";
+import InvestorDashboard from "./investor/InvestorDashboard";
+import SellerDashboard from "./seller/SellerDashboard";
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);

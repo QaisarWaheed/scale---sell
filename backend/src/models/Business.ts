@@ -11,6 +11,12 @@ export interface IBusiness extends Document {
     profit: number;
     askingPrice: number;
   };
+  details: {
+    yearEstablished?: number;
+    employees?: number;
+    website?: string;
+    reasonForSelling?: string;
+  };
   images: string[];
   status: "pending" | "approved" | "rejected" | "sold";
   views: number;
@@ -29,6 +35,12 @@ const BusinessSchema: Schema = new Schema(
       revenue: { type: Number, required: true },
       profit: { type: Number, required: true },
       askingPrice: { type: Number, required: true },
+    },
+    details: {
+      yearEstablished: { type: Number },
+      employees: { type: Number },
+      website: { type: String },
+      reasonForSelling: { type: String },
     },
     images: [{ type: String }],
     status: {

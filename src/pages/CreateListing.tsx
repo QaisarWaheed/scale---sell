@@ -83,76 +83,9 @@ export default function CreateListing() {
     setLoading(true);
 
     try {
-      // Prepare payload matching the API expectation
-      const payload = {
-        title: formData.title,
-        category: formData.category,
-        description: formData.description,
-        location: formData.location,
-        financials: {
-          revenue: Number(formData.revenue),
-          profit: Number(formData.profit),
-          askingPrice: Number(formData.askingPrice),
-        },
-        images: formData.imageUrl ? [formData.imageUrl] : [],
-        details: {
-          // Add details object if your API supports it, otherwise flatten or adjust
-          yearEstablished: Number(formData.yearEstablished),
-          employees: Number(formData.employees),
-          website: formData.website,
-          reasonForSelling: formData.reasonForSelling,
-        },
-      };
+      // Construct the payload matching the API expectation
 
-      // Note: The createListing function in listingApi expects CreateListingData
-      // We need to ensure the payload matches.
-      // Based on listing.ts, CreateListingData has financials object, but here we were passing flat fields.
-      // I've updated the payload structure above to match CreateListingData interface better.
-      // However, createListing might expect flat fields if the API implementation handles it.
-      // Let's assume the API expects the structure defined in types/listing.ts
-
-      // But wait, the previous code was:
-      /*
-      const payload = {
-        title: formData.title,
-        category: formData.category,
-        description: formData.description,
-        location: formData.location,
-        revenue: Number(formData.revenue),
-        profit: Number(formData.profit),
-        askingPrice: Number(formData.askingPrice),
-        images: formData.imageUrl ? [formData.imageUrl] : [],
-        details: { ... }
-      };
-      */
-      // And listing.ts says:
-      /*
-      export interface CreateListingData {
-        title: string;
-        description: string;
-        category: string;
-        location: string;
-        financials: {
-          askingPrice: number;
-          revenue: number;
-          profit: number;
-          expenses?: number;
-        };
-        ...
-      }
-      */
-      // So the previous payload was WRONG according to the type definition.
-      // I will correct it to match the type definition.
-
-      // However, if the backend expects flat fields, this change might break it.
-      // But since I am fixing types, I should follow the type definition.
-      // If the backend is different, the type definition should be updated.
-      // Given I can't see the backend code easily (it's in another folder), I'll trust the type definition I saw in listing.ts.
-      // Wait, I saw listing.ts content in previous turn. It definitely has `financials` object.
-
-      // So I will construct the payload correctly.
-
-      const correctedPayload: CreateListingData = {
+      const correctedPayload = {
         title: formData.title,
         description: formData.description,
         category: formData.category,
@@ -165,9 +98,8 @@ export default function CreateListing() {
         images: formData.imageUrl ? [formData.imageUrl] : [],
         yearEstablished: Number(formData.yearEstablished),
         employees: Number(formData.employees),
-        // website and reasonForSelling are not in CreateListingData interface in listing.ts
-        // I should probably add them or put them in description/metadata if needed.
-        // For now I will omit them or cast to any if I want to send them anyway.
+        website: formData.website,
+        reasonForSelling: formData.reasonForSelling,
       };
 
       await createListing(correctedPayload);

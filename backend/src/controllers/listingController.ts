@@ -12,11 +12,32 @@ export const createListing = async (req: AuthRequest, res: Response) => {
       category,
       description,
       location,
+      financials,
       revenue,
       profit,
       askingPrice,
       images,
+      yearEstablished,
+      employees,
+      website,
+      reasonForSelling,
+      details,
     } = req.body;
+
+    // Handle financials (support both nested and flat structure)
+    const financialsData = financials || {
+      revenue,
+      profit,
+      askingPrice,
+    };
+
+    // Handle details (support both nested and flat structure)
+    const detailsData = details || {
+      yearEstablished,
+      employees,
+      website,
+      reasonForSelling,
+    };
 
     const listing = await Business.create({
       sellerId: req.user?._id,
@@ -24,11 +45,8 @@ export const createListing = async (req: AuthRequest, res: Response) => {
       category,
       description,
       location,
-      financials: {
-        revenue,
-        profit,
-        askingPrice,
-      },
+      financials: financialsData,
+      details: detailsData,
       images: images || [],
     });
 
