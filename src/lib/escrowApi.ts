@@ -23,6 +23,10 @@ export interface EscrowTransaction {
   businessId: string | PopulatedBusiness;
   amount: number;
   status: "pending" | "holding" | "released" | "cancelled";
+  escrowComTransactionId?: string;
+  escrowComStatus?: string;
+  paymentUrl?: string;
+  escrowComData?: any;
   logs: {
     action: string;
     timestamp: string;
@@ -42,6 +46,11 @@ export const initiateTransaction = async (
 
 export const getTransactions = async () => {
   const response = await api.get("/escrow");
+  return response.data;
+};
+
+export const getTransaction = async (id: string) => {
+  const response = await api.get(`/escrow/${id}`);
   return response.data;
 };
 

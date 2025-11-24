@@ -2,6 +2,7 @@ export interface BusinessListing {
   _id: string;
   sellerId: {
     _id: string;
+    supabaseId?: string;
     email: string;
     profile?: {
       name?: string;
@@ -17,12 +18,16 @@ export interface BusinessListing {
     profit: number;
     expenses?: number;
   };
+  details?: {
+    yearEstablished?: number;
+    employees?: number;
+    website?: string;
+    reasonForSelling?: string;
+  };
   assets?: string[];
   liabilities?: string[];
   growthOpportunities?: string[];
   challenges?: string[];
-  employees?: number;
-  yearEstablished?: number;
   images?: string[];
   documents?: string[];
   status: "pending" | "approved" | "rejected" | "active" | "sold";

@@ -7,14 +7,14 @@ import MyOffersPage from "./MyOffersPage";
 import MessagesPage from "../MessagesPage";
 import TransactionsPage from "../TransactionsPage";
 import { useEffect, useState } from "react";
-import { getTransactions } from "@/lib/transactionApi";
+import { getTransactions, EscrowTransaction } from "@/lib/escrowApi";
 import { getThreads } from "@/lib/messageApi";
 import { getListings } from "@/lib/listingApi";
 import { getSavedListings } from "@/lib/userApi";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/lib/utils";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
-import { Offer, BusinessListing } from "@/types";
+import { BusinessListing } from "@/types";
 
 export default function InvestorDashboard() {
   const [searchParams] = useSearchParams();
@@ -50,19 +50,23 @@ export default function InvestorDashboard() {
           getSavedListings(),
         ]);
 
-        // Calculate Active Offers (buyer, status pending/negotiation)
-        const activeOffersCount = transactions.filter((t: Offer) => {
-          return (
-            (typeof t.buyerId === "object" ? t.buyerId._id : t.buyerId) ===
-              user.id && ["pending", "negotiation"].includes(t.status)
-          );
-        }).length;
+        // Calculate Active Offers (buyer, status pending)
+        const activeOffersCount = transactions.filter(
+          (t: EscrowTransaction) => {
+            return (
+              (typeof t.buyerId === "object" ? t.buyerId._id : t.buyerId) ===
+                user.id && t.status === "pending"
+            );
+          }
+        ).length;
 
-        // Calculate Active Deals (buyer, status in_progress)
-        const activeDealsCount = transactions.filter((t: Offer) => {
+        // Calculate Active Deals (buyer, status holding or released)
+        const activeDealsCount = transactions.filter((t: EscrowTransaction) => {
           const buyerId =
             typeof t.buyerId === "object" ? t.buyerId._id : t.buyerId;
-          return buyerId === user.id && t.status === "in_progress";
+          return (
+            buyerId === user.id && ["holding", "released"].includes(t.status)
+          );
         }).length;
 
         // Calculate Messages (total threads for now)

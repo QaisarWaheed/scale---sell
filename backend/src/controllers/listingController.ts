@@ -102,7 +102,7 @@ export const getListingById = async (req: AuthRequest, res: Response) => {
   try {
     const listing = await Business.findById(req.params.id).populate(
       "sellerId",
-      "profile.name profile.avatarUrl email"
+      "profile.name profile.avatarUrl email supabaseId"
     );
     if (listing) {
       res.json(listing);

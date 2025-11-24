@@ -13,13 +13,19 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
-  getTransactions,
+  getTransaction,
   updateStatus,
   EscrowTransaction as IEscrowTransaction,
 } from "@/lib/escrowApi";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { CheckCircle2, Clock, DollarSign, ArrowLeft } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock,
+  DollarSign,
+  ArrowLeft,
+  ExternalLink,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { getErrorMessage } from "@/lib/utils";
@@ -46,24 +52,16 @@ export default function EscrowTransaction() {
           setRole(session.user.user_metadata.role || "investor");
         }
 
-        // In a real app, we'd have a getTransactionById endpoint
-        // For now, we'll fetch all and filter
-        const allTransactions = await getTransactions();
-        const found = allTransactions.find(
-          (t: IEscrowTransaction) => t._id === id
-        );
-
-        if (found) {
-          setTransaction(found);
-        } else {
-          toast({
-            title: "Error",
-            description: "Transaction not found.",
-            variant: "destructive",
-          });
-        }
+        // Use the new getTransaction endpoint
+        const fetchedTransaction = await getTransaction(id!);
+        setTransaction(fetchedTransaction);
       } catch (error) {
         console.error("Error fetching transaction:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load transaction.",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
@@ -245,6 +243,54 @@ export default function EscrowTransaction() {
                   <CardTitle>Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
+                  {/* Escrow.com Payment Button */}
+                  {role === "investor" &&
+                    transaction.status === "pending" &&
+                    transaction.paymentUrl && (
+                      <Button
+                        className="w-full"
+                        onClick={() =>
+                          window.open(transaction.paymentUrl, "_blank")
+                        }
+                      >
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Complete Payment on Escrow.com
+                      </Button>
+                    )}
+
+                  {role === "investor" &&
+                    transaction.status === "pending" &&
+                    !transaction.paymentUrl && (
+                      <div className="p-3 bg-blue-50 text-blue-800 rounded text-sm">
+                        Payment processing is being set up. Please check back
+                        shortly.
+                      </div>
+                    )}
+
+                  {/* Escrow.com Transaction Info */}
+                  {transaction.escrowComTransactionId && (
+                    <div className="p-3 bg-muted rounded-lg space-y-1">
+                      <p className="text-xs text-muted-foreground">
+                        Escrow.com Transaction ID
+                      </p>
+                      <p className="font-mono text-sm">
+                        {transaction.escrowComTransactionId}
+                      </p>
+                      {transaction.escrowComStatus && (
+                        <>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Escrow.com Status
+                          </p>
+                          <Badge variant="outline" className="capitalize">
+                            {transaction.escrowComStatus}
+                          </Badge>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  <Separator className="my-4" />
+
                   {role === "admin" && (
                     <>
                       <Button

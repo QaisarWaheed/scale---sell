@@ -6,6 +6,10 @@ export interface IEscrowTransaction extends Document {
   businessId: mongoose.Types.ObjectId;
   amount: number;
   status: "pending" | "holding" | "released" | "cancelled";
+  escrowComTransactionId?: string;
+  escrowComStatus?: string;
+  paymentUrl?: string;
+  escrowComData?: any;
   logs: {
     action: string;
     timestamp: Date;
@@ -30,6 +34,10 @@ const EscrowTransactionSchema: Schema = new Schema(
       enum: ["pending", "holding", "released", "cancelled"],
       default: "pending",
     },
+    escrowComTransactionId: { type: String },
+    escrowComStatus: { type: String },
+    paymentUrl: { type: String },
+    escrowComData: { type: Schema.Types.Mixed },
     logs: [
       {
         action: String,

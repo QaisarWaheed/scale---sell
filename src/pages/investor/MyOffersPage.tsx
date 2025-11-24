@@ -13,33 +13,29 @@ import {
 } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { useToast } from "@/hooks/use-toast";
-import { getTransactions } from "@/lib/transactionApi";
+import { getTransactions, EscrowTransaction } from "@/lib/escrowApi";
 import { formatCurrency, getErrorMessage } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { Offer } from "@/types";
 
 const statusConfig = {
   pending: { label: "Pending", color: "bg-yellow-100 text-yellow-800" },
-  accepted: { label: "Accepted", color: "bg-green-100 text-green-800" },
-  rejected: { label: "Rejected", color: "bg-red-100 text-red-800" },
-  in_escrow: { label: "In Escrow", color: "bg-blue-100 text-blue-800" },
-  completed: { label: "Completed", color: "bg-green-100 text-green-800" },
-  failed: { label: "Failed", color: "bg-red-100 text-red-800" },
-  negotiation: { label: "Negotiation", color: "bg-purple-100 text-purple-800" },
+  holding: { label: "In Escrow", color: "bg-blue-100 text-blue-800" },
+  released: { label: "Completed", color: "bg-green-100 text-green-800" },
+  cancelled: { label: "Cancelled", color: "bg-red-100 text-red-800" },
 };
 
 export default function MyOffersPage() {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [offers, setOffers] = useState<Offer[]>([]);
+  const [offers, setOffers] = useState<EscrowTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [stats, setStats] = useState({
     activeOffers: 0,
-    savedListings: 0, // Placeholder as we don't have saved listings yet
-    totalViewed: 0, // Placeholder
-    avgOfferDiscount: "0%", // Placeholder
+    savedListings: 0,
+    totalViewed: 0,
+    avgOfferDiscount: "0%",
   });
 
   const fetchOffers = useCallback(async () => {
@@ -61,7 +57,8 @@ export default function MyOffersPage() {
       setOffers(data);
 
       const active = data.filter(
-        (o: Offer) => o.status === "pending" || o.status === "in_escrow"
+        (o: EscrowTransaction) =>
+          o.status === "pending" || o.status === "holding"
       ).length;
       setStats((prev) => ({ ...prev, activeOffers: active }));
     } catch (error) {
@@ -88,7 +85,7 @@ export default function MyOffersPage() {
 
   // Filter offers where user is buyer
   const myOffers = currentUserId
-    ? offers.filter((offer: Offer) => {
+    ? offers.filter((offer: EscrowTransaction) => {
         // Handle both populated object and string ID cases
         const buyerId =
           typeof offer.buyerId === "object" ? offer.buyerId._id : offer.buyerId;

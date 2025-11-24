@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { SectionHeader } from "@/components/layouts/SectionHeader";
 import { StatsCard } from "@/components/StatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,10 +13,9 @@ import {
   XCircle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { getTransactions } from "@/lib/transactionApi";
+import { getTransactions, EscrowTransaction } from "@/lib/escrowApi";
 import { formatCurrency, getErrorMessage } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { Offer } from "@/types";
 
 const statusConfig = {
   completed: {
@@ -23,7 +23,12 @@ const statusConfig = {
     color: "bg-green-100 text-green-800",
     icon: CheckCircle,
   },
-  in_escrow: {
+  released: {
+    label: "Released",
+    color: "bg-green-100 text-green-800",
+    icon: CheckCircle,
+  },
+  holding: {
     label: "In Escrow",
     color: "bg-blue-100 text-blue-800",
     icon: Clock,
@@ -33,22 +38,17 @@ const statusConfig = {
     color: "bg-yellow-100 text-yellow-800",
     icon: Clock,
   },
-  accepted: {
-    label: "Accepted",
-    color: "bg-green-100 text-green-800",
-    icon: CheckCircle,
-  },
-  rejected: {
-    label: "Rejected",
+  cancelled: {
+    label: "Cancelled",
     color: "bg-red-100 text-red-800",
     icon: XCircle,
   },
-  failed: { label: "Failed", color: "bg-red-100 text-red-800", icon: XCircle },
 };
 
 export default function TransactionsPage() {
   const { toast } = useToast();
-  const [transactions, setTransactions] = useState<Offer[]>([]);
+  const navigate = useNavigate();
+  const [transactions, setTransactions] = useState<EscrowTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [stats, setStats] = useState({
@@ -58,15 +58,15 @@ export default function TransactionsPage() {
     pending: 0,
   });
 
-  const calculateStats = (data: Offer[]) => {
+  const calculateStats = (data: EscrowTransaction[]) => {
     const newStats = data.reduce(
       (acc, txn) => {
-        if (txn.status === "completed") {
+        if (txn.status === "released") {
           acc.completed++;
           acc.totalVolume += txn.amount;
         } else if (txn.status === "pending") {
           acc.pending++;
-        } else if (txn.status === "in_escrow") {
+        } else if (txn.status === "holding") {
           acc.activeTransactions++;
         }
         return acc;
@@ -104,24 +104,39 @@ export default function TransactionsPage() {
     fetchTransactions();
   }, [fetchTransactions]);
 
-  const getOtherPartyName = (txn: Offer) => {
+  const getOtherPartyName = (txn: EscrowTransaction) => {
     if (!currentUserId) return "User";
 
     // Check if buyerId is populated object or string ID
-    const buyerId =
-      typeof txn.buyerId === "object" ? txn.buyerId._id : txn.buyerId;
+    const buyerIdStr =
+      typeof txn.buyerId === "object" && txn.buyerId._id
+        ? txn.buyerId._id
+        : typeof txn.buyerId === "string"
+        ? txn.buyerId
+        : "";
 
-    if (buyerId === currentUserId) {
+    if (buyerIdStr === currentUserId) {
       // Current user is buyer, return seller name
-      return typeof txn.sellerId === "object" && txn.sellerId.profile
+      return typeof txn.sellerId === "object" && txn.sellerId.profile?.name
         ? txn.sellerId.profile.name
         : "Seller";
     } else {
       // Current user is seller (or other), return buyer name
-      return typeof txn.buyerId === "object" && txn.buyerId.profile
+      return typeof txn.buyerId === "object" && txn.buyerId.profile?.name
         ? txn.buyerId.profile.name
         : "Buyer";
     }
+  };
+
+  const getBusinessTitle = (txn: EscrowTransaction) => {
+    if (typeof txn.businessId === "object" && txn.businessId?.title) {
+      return txn.businessId.title;
+    }
+    return "Unknown Business";
+  };
+
+  const handleViewDetails = (transactionId: string) => {
+    navigate(`/dashboard/escrow/${transactionId}`);
   };
 
   return (
@@ -186,7 +201,7 @@ export default function TransactionsPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="font-semibold">
-                          {transaction.businessId?.title || "Unknown Business"}
+                          {getBusinessTitle(transaction)}
                         </h3>
                         <Badge className={statusColor}>
                           <StatusIcon className="h-3 w-3 mr-1" />
@@ -228,7 +243,12 @@ export default function TransactionsPage() {
                           ? new Date(transaction.updatedAt).toLocaleDateString()
                           : "N/A"}
                       </div>
-                      <Button variant="outline" size="sm" className="mt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        onClick={() => handleViewDetails(transaction._id)}
+                      >
                         View Details
                       </Button>
                     </div>

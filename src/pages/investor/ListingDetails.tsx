@@ -304,15 +304,16 @@ export default function ListingDetails() {
                   Start Acquisition
                 </Button>
               )}
-              {role === "seller" && user?.id === listing.sellerId._id && (
-                <Button
-                  className="w-full mt-6"
-                  variant="outline"
-                  onClick={() => navigate(`/dashboard?tab=listings`)}
-                >
-                  Manage Listing
-                </Button>
-              )}
+              {role === "seller" &&
+                user?.id === listing.sellerId.supabaseId && (
+                  <Button
+                    className="w-full mt-6"
+                    variant="outline"
+                    onClick={() => navigate(`/dashboard?tab=listings`)}
+                  >
+                    Manage Listing
+                  </Button>
+                )}
             </CardContent>
           </Card>
 
