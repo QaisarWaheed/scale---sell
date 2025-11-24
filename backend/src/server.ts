@@ -8,6 +8,10 @@ dotenv.config({ path: path.join(__dirname, "../../.env") });
 import app from "./app";
 import { connectDB } from "./config/db";
 import { initializeCollections } from "./config/initDb";
+import uploadRoutes from "./routes/uploadRoutes";
+
+// Mount upload routes
+app.use("/api/upload", uploadRoutes);
 
 const PORT = process.env.PORT || 5000;
 

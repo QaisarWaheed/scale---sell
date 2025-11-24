@@ -21,10 +21,11 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { createListing } from "@/lib/listingApi";
+import api from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, Upload } from "lucide-react";
 import { getErrorMessage } from "@/lib/utils";
 
 export default function CreateListing() {
@@ -48,8 +49,10 @@ export default function CreateListing() {
     employees: "",
     website: "",
     reasonForSelling: "",
-    imageUrl: "", // Simple URL input for MVP
+    imageUrl: "",
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -78,12 +81,57 @@ export default function CreateListing() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setImageFile(e.target.files[0]);
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    try {
+      setUploading(true);
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const response = await api.post("/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      return response.data.url;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast({
+        title: "Upload Error",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       // Construct the payload matching the API expectation
+
+      // Upload image if selected
+      let finalImageUrl = formData.imageUrl;
+      if (imageFile) {
+        const uploadedUrl = await uploadImage(imageFile);
+        if (uploadedUrl) {
+          finalImageUrl = uploadedUrl;
+        } else {
+          // If upload fails, stop submission
+          setLoading(false);
+          return;
+        }
+      }
 
       const correctedPayload = {
         title: formData.title,
@@ -95,7 +143,7 @@ export default function CreateListing() {
           revenue: Number(formData.revenue),
           profit: Number(formData.profit),
         },
-        images: formData.imageUrl ? [formData.imageUrl] : [],
+        images: finalImageUrl ? [finalImageUrl] : [],
         yearEstablished: Number(formData.yearEstablished),
         employees: Number(formData.employees),
         website: formData.website,
@@ -297,16 +345,19 @@ export default function CreateListing() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="imageUrl">Image URL (Optional)</Label>
-                <Input
-                  id="imageUrl"
-                  name="imageUrl"
-                  placeholder="https://example.com/image.jpg"
-                  value={formData.imageUrl}
-                  onChange={handleChange}
-                />
+                <Label htmlFor="image">Business Image</Label>
+                <div className="flex items-center gap-4">
+                  <Input
+                    id="image"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="cursor-pointer"
+                  />
+                  {uploading && <LoadingSpinner />}
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  Provide a direct link to an image to showcase your business.
+                  Upload an image to showcase your business.
                 </p>
               </div>
             </CardContent>
@@ -320,7 +371,7 @@ export default function CreateListing() {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || uploading}>
               {loading ? (
                 <LoadingSpinner className="mr-2 h-4 w-4" />
               ) : (
