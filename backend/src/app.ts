@@ -12,6 +12,8 @@ import uploadRoutes from "./routes/uploadRoutes";
 import offerRoutes from "./routes/offerRoutes";
 import investmentRoutes from "./routes/investmentRoutes";
 import commissionRoutes from "./routes/commissionRoutes";
+import contactRoutes from "./routes/contactRoutes";
+import { errorHandler } from "./middleware/errorMiddleware";
 
 const app = express();
 
@@ -32,9 +34,13 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/offers", offerRoutes);
 app.use("/api/investments", investmentRoutes);
 app.use("/api/commissions", commissionRoutes);
+app.use("/api/contact", contactRoutes);
 
 app.get("/", (req, res) => {
   res.send("Scale & Sell API is running");
 });
+
+// Error Handler
+app.use(errorHandler);
 
 export default app;

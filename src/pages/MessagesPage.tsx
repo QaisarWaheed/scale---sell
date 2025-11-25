@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { SearchBar } from "@/components/ui/search-bar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,80 +6,25 @@ import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/EmptyState";
 import { MessageSquare, Send } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { getThreads, getMessages, sendMessage } from "@/lib/messageApi";
-import { supabase } from "@/integrations/supabase/client";
-import { getErrorMessage } from "@/lib/utils";
-import { Thread, Message, User, BusinessListing } from "@/types";
+import { useChat } from "@/context/ChatContext";
+import { BusinessListing, Thread } from "@/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function MessagesPage() {
-  const { toast } = useToast();
-  const [threads, setThreads] = useState<Thread[]>([]);
-  const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const {
+    threads,
+    selectedThread,
+    messages,
+    loadingThreads,
+    loadingMessages,
+    setSelectedThread,
+    sendMessage,
+    currentUserId,
+  } = useChat();
+
   const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [messagesLoading, setMessagesLoading] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const fetchThreads = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await getThreads();
-      setThreads(data);
-      if (data.length > 0 && !selectedThread) {
-        setSelectedThread(data[0]);
-      }
-    } catch (error) {
-      console.error("Error fetching threads:", error);
-      toast({
-        title: "Error fetching conversations",
-        description: getErrorMessage(error),
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast, selectedThread]);
-
-  useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setCurrentUserId(user?.id || null);
-    };
-    getUser();
-    fetchThreads();
-  }, [fetchThreads]);
-
-  const fetchMessages = useCallback(
-    async (threadId: string) => {
-      try {
-        setMessagesLoading(true);
-        const data = await getMessages(threadId);
-        setMessages(data);
-      } catch (error) {
-        console.error("Error fetching messages:", error);
-        toast({
-          title: "Error fetching messages",
-          description: "Failed to load the conversation.",
-          variant: "destructive",
-        });
-      } finally {
-        setMessagesLoading(false);
-      }
-    },
-    [toast]
-  );
-
-  useEffect(() => {
-    if (selectedThread) {
-      fetchMessages(selectedThread._id);
-    }
-  }, [selectedThread, fetchMessages]);
 
   useEffect(() => {
     scrollToBottom();
@@ -90,50 +35,12 @@ export default function MessagesPage() {
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedThread || !currentUserId) return;
-
+    if (!newMessage.trim()) return;
     try {
-      // Get the other participant (not the current user)
-      // Compare using supabaseId since currentUserId is a Supabase ID
-      const otherParticipant = selectedThread.participants.find((p) => {
-        if (typeof p === "object") {
-          return p.supabaseId !== currentUserId;
-        }
-        return p !== currentUserId;
-      });
-
-      if (!otherParticipant) {
-        toast({
-          title: "Error",
-          description: "Could not find recipient",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const receiverId =
-        typeof otherParticipant === "object"
-          ? otherParticipant._id
-          : otherParticipant;
-
-      const business = selectedThread.businessId as BusinessListing;
-
-      await sendMessage({
-        businessId: business._id,
-        content: newMessage,
-        receiverId,
-      });
-
+      await sendMessage(newMessage);
       setNewMessage("");
-      fetchMessages(selectedThread._id);
-      fetchThreads(); // Refresh threads to update last message
     } catch (error) {
-      console.error("Error sending message:", error);
-      toast({
-        title: "Error sending message",
-        description: getErrorMessage(error),
-        variant: "destructive",
-      });
+      // Error handled in context
     }
   };
 
@@ -145,8 +52,6 @@ export default function MessagesPage() {
   const getOtherParticipantName = (thread: Thread) => {
     if (!currentUserId) return "User";
 
-    // Find the participant who is NOT the current user
-    // Compare using supabaseId since currentUserId is a Supabase ID
     const otherParticipant = thread.participants.find((p) => {
       if (typeof p === "object") {
         return p.supabaseId !== currentUserId;
@@ -178,10 +83,16 @@ export default function MessagesPage() {
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-2">
-              {loading ? (
-                <div className="text-center py-4 text-muted-foreground">
-                  Loading...
-                </div>
+              {loadingThreads ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex items-center space-x-4 p-3">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-4 w-[150px]" />
+                      <Skeleton className="h-4 w-[100px]" />
+                    </div>
+                  </div>
+                ))
               ) : filteredThreads.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   No conversations found
@@ -253,10 +164,17 @@ export default function MessagesPage() {
 
               {/* Messages Area */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messagesLoading ? (
-                  <div className="text-center py-4 text-muted-foreground">
-                    Loading messages...
-                  </div>
+                {loadingMessages ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className={`flex ${
+                        i % 2 === 0 ? "justify-start" : "justify-end"
+                      }`}
+                    >
+                      <Skeleton className="h-12 w-[200px] rounded-lg" />
+                    </div>
+                  ))
                 ) : messages.length === 0 ? (
                   <EmptyState
                     icon={MessageSquare}
@@ -265,7 +183,6 @@ export default function MessagesPage() {
                   />
                 ) : (
                   messages.map((message) => {
-                    // Compare using supabaseId for proper user identification
                     const senderId =
                       typeof message.senderId === "object"
                         ? message.senderId.supabaseId

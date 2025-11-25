@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/layouts/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getListingById } from "@/lib/listingApi";
 import { toggleSavedListing, getSavedListings } from "@/lib/userApi";
 import { startConversation } from "@/lib/messageApi";
@@ -51,7 +51,9 @@ export default function ListingDetails() {
         } = await supabase.auth.getSession();
         if (session) {
           setUser(session.user);
-          setRole(session.user.user_metadata.role || "investor");
+          setRole(
+            (session.user.user_metadata.role || "investor").toLowerCase()
+          );
 
           // Check if saved
           if (id) {
@@ -148,7 +150,44 @@ export default function ListingDetails() {
   };
 
   if (loading) {
-    return <LoadingSpinner centered />;
+    return (
+      <DashboardLayout
+        role={role}
+        userEmail={user?.email}
+        userName={user?.user_metadata?.name}
+        title="Listing Details"
+      >
+        <div className="flex items-center justify-between mb-6">
+          <Skeleton className="h-10 w-20" />
+          <Skeleton className="h-9 w-32" />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-8">
+            <div>
+              <div className="mb-4">
+                <Skeleton className="h-10 w-3/4 mb-2" />
+                <div className="flex gap-4">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-5 w-24" />
+                </div>
+              </div>
+              <Skeleton className="aspect-video w-full rounded-lg mb-6" />
+              <div className="space-y-2">
+                <Skeleton className="h-6 w-48 mb-3" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+              </div>
+            </div>
+          </div>
+          <div className="space-y-6">
+            <Skeleton className="h-[300px] w-full rounded-lg" />
+            <Skeleton className="h-[150px] w-full rounded-lg" />
+          </div>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   if (!listing) {
@@ -414,7 +453,7 @@ export default function ListingDetails() {
                           }}
                           trigger={
                             <Button className="w-full" size="lg">
-                              Make Purchase Offer
+                              Buy / Make Offer
                             </Button>
                           }
                         />

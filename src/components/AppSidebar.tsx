@@ -8,6 +8,7 @@ import {
   TrendingUp,
   LogOut,
   ChevronLeft,
+  Heart,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,8 @@ export function AppSidebar({ role, userEmail, userName }: AppSidebarProps) {
     { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
     { icon: TrendingUp, label: "Browse Opportunities", href: "/browse" },
     { icon: FileText, label: "My Offers", href: "/dashboard?tab=offers" },
+    { icon: FileText, label: "Contracts", href: "/dashboard?tab=contracts" },
+    { icon: Heart, label: "Saved Listings", href: "/dashboard?tab=saved" },
     { icon: MessageSquare, label: "Messages", href: "/dashboard?tab=messages" },
     {
       icon: DollarSign,

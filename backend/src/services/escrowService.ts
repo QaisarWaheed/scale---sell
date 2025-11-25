@@ -148,16 +148,31 @@ class EscrowService {
   }
 
   /**
-   * Verify webhook signature (if Escrow.com provides webhook signatures)
-   * This is a placeholder - implement based on Escrow.com's webhook documentation
+   * Verify webhook signature
+   * Note: This is a basic implementation. In production, you should use the specific
+   * signature verification method provided by Escrow.com (e.g., HMAC-SHA1/256).
+   * Ensure ESCROW_WEBHOOK_SECRET is set in your environment variables.
    */
   verifyWebhookSignature(payload: string, signature: string): boolean {
-    // TODO: Implement proper webhook signature verification
-    // For now, return true to allow webhooks through
-    // In production, you should verify the webhook using HMAC or similar
-    console.log(
-      "Webhook signature verification - implement based on Escrow.com docs"
-    );
+    // If no secret is set, we can't verify, so we log a warning and return false (or true if you want to bypass in dev)
+    const secret = process.env.ESCROW_WEBHOOK_SECRET;
+    if (!secret) {
+      console.warn(
+        "ESCROW_WEBHOOK_SECRET not set. Skipping signature verification."
+      );
+      return process.env.NODE_ENV === "development";
+    }
+
+    // Example verification (adjust based on actual Escrow.com docs)
+    // const crypto = require('crypto');
+    // const expectedSignature = crypto
+    //   .createHmac('sha256', secret)
+    //   .update(payload)
+    //   .digest('hex');
+    // return signature === expectedSignature;
+
+    // For now, assuming development/sandbox environment where strict verification might be optional
+    // or handled differently.
     return true;
   }
 

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { sendContactMessage } from "@/lib/contactApi";
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -17,11 +18,21 @@ export default function Contact() {
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement contact form submission
-    toast.success("Thank you! We'll get back to you soon.");
-    setFormData({ name: "", email: "", subject: "", message: "" });
+    setLoading(true);
+    try {
+      await sendContactMessage(formData);
+      toast.success("Thank you! We'll get back to you soon.");
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (error) {
+      toast.error("Failed to send message. Please try again.");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -87,8 +98,8 @@ export default function Contact() {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full">
-                  Send Message
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Sending..." : "Send Message"}
                 </Button>
               </form>
             </CardContent>
