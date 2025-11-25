@@ -106,3 +106,40 @@ export const getContract = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Get all contracts for the current user
+// @route   GET /api/contracts/user/all
+// @access  Private
+export const getUserContracts = async (req: AuthRequest, res: Response) => {
+  try {
+    // Find all contracts where the user is either buyer or seller
+    const contracts = await Contract.find().populate({
+      path: "transactionId",
+      populate: [{ path: "buyerId" }, { path: "sellerId" }],
+    });
+
+    // Filter contracts where user is involved
+    const userContracts = contracts.filter((contract: any) => {
+      const transaction = contract.transactionId;
+      if (!transaction) return false;
+
+      const buyerId =
+        typeof transaction.buyerId === "object"
+          ? transaction.buyerId._id.toString()
+          : transaction.buyerId.toString();
+      const sellerId =
+        typeof transaction.sellerId === "object"
+          ? transaction.sellerId._id.toString()
+          : transaction.sellerId.toString();
+
+      return (
+        buyerId === req.user?._id.toString() ||
+        sellerId === req.user?._id.toString()
+      );
+    });
+
+    res.json(userContracts);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};

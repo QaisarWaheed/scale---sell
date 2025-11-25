@@ -117,7 +117,7 @@ export function AppSidebar({ role, userEmail, userName }: AppSidebarProps) {
       <Separator className="bg-sidebar-border" />
 
       {/* Navigation */}
-      <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
+      <nav className="flex-1 p-2 space-y-1">
         {menuItems.map((item) => (
           <Link
             key={item.href}
