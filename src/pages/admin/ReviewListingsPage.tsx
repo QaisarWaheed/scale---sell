@@ -6,14 +6,16 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2, Eye, MapPin, DollarSign, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getAllListings, deleteListing } from "@/lib/adminApi";
-import { formatCurrency } from "@/lib/utils";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { getErrorMessage } from "@/lib/utils";
 import { BusinessListing } from "@/types";
 import { ConfirmDialog } from "@/components/dialogs/ConfirmDialog";
+import { useCurrency } from "@/context/CurrencyContext";
+import { Link } from "react-router-dom";
 
 export default function ReviewListingsPage() {
   const { toast } = useToast();
+  const { formatAmount } = useCurrency();
   const [listings, setListings] = useState<BusinessListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [listingToDelete, setListingToDelete] = useState<string | null>(null);
@@ -123,7 +125,7 @@ export default function ReviewListingsPage() {
                           className="flex items-center"
                         >
                           <DollarSign className="w-3 h-3 mr-1" />
-                          {formatCurrency(listing.financials.askingPrice)}
+                          {formatAmount(listing.financials.askingPrice)}
                         </Badge>
                       </div>
                       <p className="text-muted-foreground line-clamp-2">
@@ -139,9 +141,11 @@ export default function ReviewListingsPage() {
                         <Trash2 className="w-4 h-4 mr-2" />
                         Delete
                       </Button>
-                      <Button size="sm" variant="outline">
-                        <Eye className="w-4 h-4 mr-2" />
-                        View Details
+                      <Button size="sm" variant="outline" asChild>
+                        <Link to={`/listing/${listing._id}`}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Details
+                        </Link>
                       </Button>
                     </div>
                   </div>
@@ -151,13 +155,13 @@ export default function ReviewListingsPage() {
                       <span className="font-medium text-muted-foreground">
                         Revenue:
                       </span>{" "}
-                      {formatCurrency(listing.financials.revenue)}
+                      {formatAmount(listing.financials.revenue)}
                     </div>
                     <div>
                       <span className="font-medium text-muted-foreground">
                         Profit:
                       </span>{" "}
-                      {formatCurrency(listing.financials.profit)}
+                      {formatAmount(listing.financials.profit)}
                     </div>
                     <div>
                       <span className="font-medium text-muted-foreground">

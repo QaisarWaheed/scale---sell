@@ -10,6 +10,7 @@ import { toggleSavedListing, getSavedListings } from "@/lib/userApi";
 import { startConversation } from "@/lib/messageApi";
 import { getMyOffers } from "@/lib/offerApi";
 import { MakeOfferDialog } from "@/components/dialogs/MakeOfferDialog";
+import { InvestmentOfferDialog } from "@/components/dialogs/InvestmentOfferDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import {
@@ -21,14 +22,18 @@ import {
   ShieldCheck,
   Heart,
   MessageSquare,
+  Briefcase,
+  PieChart,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { BusinessListing, Offer } from "@/types";
+import { useCurrency } from "@/context/CurrencyContext";
 
 export default function ListingDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { formatAmount } = useCurrency();
   const [listing, setListing] = useState<BusinessListing | null>(null);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
@@ -164,6 +169,11 @@ export default function ListingDetails() {
     );
   }
 
+  const isInvestment =
+    listing.listingType === "investment" || listing.listingType === "both";
+  const isSale =
+    listing.listingType === "sale" || listing.listingType === "both";
+
   return (
     <DashboardLayout
       role={role}
@@ -215,6 +225,11 @@ export default function ListingDetails() {
                       Verified
                     </Badge>
                   )}
+                  {isInvestment && (
+                    <Badge className="bg-blue-600 text-white hover:bg-blue-700">
+                      Investment Opportunity
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
@@ -241,6 +256,74 @@ export default function ListingDetails() {
                 {listing.description}
               </p>
             </div>
+
+            {isInvestment && listing.investmentOptions && (
+              <div className="mt-8">
+                <h3 className="text-xl font-semibold mb-3">
+                  Investment Details
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        Investment Range
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-lg font-semibold">
+                        {listing.investmentOptions.minInvestment
+                          ? formatAmount(
+                              listing.investmentOptions.minInvestment
+                            )
+                          : "N/A"}{" "}
+                        -{" "}
+                        {listing.investmentOptions.maxInvestment
+                          ? formatAmount(
+                              listing.investmentOptions.maxInvestment
+                            )
+                          : "N/A"}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        Offering
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-col gap-1">
+                        {listing.investmentOptions.equityOffered && (
+                          <div className="flex items-center gap-2">
+                            <PieChart className="h-4 w-4 text-blue-500" />
+                            <span className="font-semibold">
+                              {listing.investmentOptions.equityOffered}% Equity
+                            </span>
+                          </div>
+                        )}
+                        {listing.investmentOptions.revenueShareOffered && (
+                          <div className="flex items-center gap-2">
+                            <TrendingUp className="h-4 w-4 text-green-500" />
+                            <span className="font-semibold">
+                              {listing.investmentOptions.revenueShareOffered}%
+                              Rev Share
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+                {listing.investmentOptions.investmentPurpose && (
+                  <div className="mt-4 bg-muted/30 p-4 rounded-lg">
+                    <h4 className="font-medium mb-2">Investment Purpose</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {listing.investmentOptions.investmentPurpose}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Details Grid */}
@@ -281,59 +364,82 @@ export default function ListingDetails() {
               <CardTitle>Financial Overview</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">
-                  Asking Price
-                </p>
-                <p className="text-3xl font-bold text-primary">
-                  Rs. {listing.financials.askingPrice.toLocaleString()}
-                </p>
-              </div>
+              {isSale && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Asking Price
+                  </p>
+                  <p className="text-3xl font-bold text-primary">
+                    {formatAmount(listing.financials.askingPrice)}
+                  </p>
+                </div>
+              )}
 
               <div className="pt-4 border-t space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Annual Revenue</span>
                   <span className="font-semibold">
-                    Rs. {listing.financials.revenue.toLocaleString()}
+                    {formatAmount(listing.financials.revenue)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Annual Profit</span>
                   <span className="font-semibold text-green-600">
-                    Rs. {listing.financials.profit.toLocaleString()}
+                    {formatAmount(listing.financials.profit)}
                   </span>
                 </div>
               </div>
 
               {role === "investor" && (
-                <>
-                  {existingOffer ? (
-                    <div className="mt-6 p-4 bg-muted rounded-lg text-center">
-                      <p className="font-medium mb-2">Offer Sent</p>
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => navigate("/dashboard?tab=offers")}
-                      >
-                        View Offer Status
-                      </Button>
-                    </div>
-                  ) : (
-                    <MakeOfferDialog
-                      businessId={listing._id}
-                      askingPrice={listing.financials.askingPrice}
-                      onSuccess={() => {
-                        // Refresh to show offer status
-                        window.location.reload();
-                      }}
+                <div className="space-y-3 mt-6">
+                  {isSale && (
+                    <>
+                      {existingOffer ? (
+                        <div className="p-4 bg-muted rounded-lg text-center">
+                          <p className="font-medium mb-2">Offer Sent</p>
+                          <Button
+                            variant="outline"
+                            className="w-full"
+                            onClick={() => navigate("/dashboard?tab=offers")}
+                          >
+                            View Offer Status
+                          </Button>
+                        </div>
+                      ) : (
+                        <MakeOfferDialog
+                          businessId={listing._id}
+                          askingPrice={listing.financials.askingPrice}
+                          onSuccess={() => {
+                            window.location.reload();
+                          }}
+                          trigger={
+                            <Button className="w-full" size="lg">
+                              Make Purchase Offer
+                            </Button>
+                          }
+                        />
+                      )}
+                    </>
+                  )}
+
+                  {isInvestment && (
+                    <InvestmentOfferDialog
+                      business={listing}
                       trigger={
-                        <Button className="w-full mt-6" size="lg">
-                          Make an Offer
+                        <Button
+                          className="w-full bg-blue-600 hover:bg-blue-700"
+                          size="lg"
+                        >
+                          <Briefcase className="mr-2 h-4 w-4" />
+                          Invest Now
                         </Button>
                       }
+                      onSuccess={() => {
+                        navigate("/dashboard?tab=investments");
+                      }}
                     />
                   )}
-                </>
+                </div>
               )}
               {role === "seller" &&
                 user?.id ===

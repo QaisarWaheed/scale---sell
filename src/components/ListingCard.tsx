@@ -6,8 +6,9 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, MapPin, DollarSign } from "lucide-react";
+import { TrendingUp, MapPin, DollarSign, Briefcase } from "lucide-react";
 import { Link } from "react-router-dom";
+import { formatCurrency } from "@/lib/utils";
 
 interface ListingCardProps {
   id: string;
@@ -19,6 +20,14 @@ interface ListingCardProps {
   location: string;
   verified?: boolean;
   imageUrl?: string;
+  listingType?: "sale" | "investment" | "both";
+  investmentOptions?: {
+    seekingInvestment: boolean;
+    minInvestment?: number;
+    maxInvestment?: number;
+    equityOffered?: number;
+    revenueShareOffered?: number;
+  };
 }
 
 export const ListingCard = ({
@@ -31,6 +40,8 @@ export const ListingCard = ({
   location,
   verified = false,
   imageUrl,
+  listingType = "sale",
+  investmentOptions,
 }: ListingCardProps) => {
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden h-full flex flex-col">
@@ -47,11 +58,18 @@ export const ListingCard = ({
             <TrendingUp className="h-12 w-12 text-primary/20" />
           </div>
         )}
-        {verified && (
-          <Badge className="absolute top-3 right-3 bg-white/90 text-primary hover:bg-white shadow-sm backdrop-blur-sm">
-            Verified
-          </Badge>
-        )}
+        <div className="absolute top-3 right-3 flex flex-col gap-2 items-end">
+          {verified && (
+            <Badge className="bg-white/90 text-primary hover:bg-white shadow-sm backdrop-blur-sm">
+              Verified
+            </Badge>
+          )}
+          {(listingType === "investment" || listingType === "both") && (
+            <Badge className="bg-blue-600/90 text-white hover:bg-blue-600 shadow-sm backdrop-blur-sm">
+              Investment
+            </Badge>
+          )}
+        </div>
       </div>
 
       <CardHeader className="pb-3">
@@ -79,19 +97,34 @@ export const ListingCard = ({
         <div className="grid grid-cols-2 gap-4 pt-4 border-t">
           <div>
             <p className="text-xs text-muted-foreground mb-1 font-medium uppercase tracking-wider">
-              Asking Price
+              {listingType === "investment" ? "Min Investment" : "Asking Price"}
             </p>
             <p className="font-bold text-lg text-primary">
-              ${price.toLocaleString()}
+              {listingType === "investment" && investmentOptions?.minInvestment
+                ? formatCurrency(investmentOptions.minInvestment)
+                : formatCurrency(price)}
             </p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground mb-1 font-medium uppercase tracking-wider">
-              Revenue
+              {listingType === "investment" ? "Equity/Rev Share" : "Revenue"}
             </p>
             <p className="font-semibold text-lg flex items-center gap-1">
-              <DollarSign className="h-4 w-4 text-green-500" />
-              {revenue.toLocaleString()}
+              {listingType === "investment" ? (
+                <span className="flex items-center gap-1 text-blue-600">
+                  <Briefcase className="h-4 w-4" />
+                  {investmentOptions?.equityOffered
+                    ? `${investmentOptions.equityOffered}%`
+                    : investmentOptions?.revenueShareOffered
+                    ? `${investmentOptions.revenueShareOffered}%`
+                    : "N/A"}
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-green-600">
+                  <DollarSign className="h-4 w-4" />
+                  {formatCurrency(revenue)}
+                </span>
+              )}
             </p>
           </div>
         </div>

@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { CurrencySelector } from "@/components/CurrencySelector";
 
 interface AppSidebarProps {
   role: string;
@@ -147,6 +148,13 @@ export function AppSidebar({ role, userEmail, userName }: AppSidebarProps) {
           </div>
         )}
         <ThemeToggle
+          compact={collapsed}
+          className={cn(
+            "w-full mb-2",
+            collapsed ? "justify-center px-2" : "justify-start"
+          )}
+        />
+        <CurrencySelector
           compact={collapsed}
           className={cn(
             "w-full mb-2",

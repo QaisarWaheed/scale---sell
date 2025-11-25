@@ -10,6 +10,8 @@ import messageRoutes from "./routes/messageRoutes";
 import adminRoutes from "./routes/adminRoutes";
 import uploadRoutes from "./routes/uploadRoutes";
 import offerRoutes from "./routes/offerRoutes";
+import investmentRoutes from "./routes/investmentRoutes";
+import commissionRoutes from "./routes/commissionRoutes";
 
 const app = express();
 
@@ -28,6 +30,8 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/offers", offerRoutes);
+app.use("/api/investments", investmentRoutes);
+app.use("/api/commissions", commissionRoutes);
 
 app.get("/", (req, res) => {
   res.send("Scale & Sell API is running");

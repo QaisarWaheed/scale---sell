@@ -5,6 +5,15 @@ export interface IListing extends Document {
   description: string;
   category: string;
   location: string;
+  listingType: "sale" | "investment" | "both"; // Type of listing
+  investmentOptions?: {
+    seekingInvestment: boolean;
+    minInvestment?: number;
+    maxInvestment?: number;
+    equityOffered?: number; // Percentage
+    revenueShareOffered?: number; // Percentage
+    investmentPurpose?: string; // What the investment will be used for
+  };
   financials: {
     askingPrice: number;
     revenue: number;
@@ -30,6 +39,19 @@ const ListingSchema = new Schema<IListing>(
     description: { type: String, required: true },
     category: { type: String, required: true },
     location: { type: String, required: true },
+    listingType: {
+      type: String,
+      enum: ["sale", "investment", "both"],
+      default: "sale",
+    },
+    investmentOptions: {
+      seekingInvestment: { type: Boolean, default: false },
+      minInvestment: { type: Number },
+      maxInvestment: { type: Number },
+      equityOffered: { type: Number },
+      revenueShareOffered: { type: Number },
+      investmentPurpose: { type: String },
+    },
     financials: {
       askingPrice: { type: Number, required: true },
       revenue: { type: Number, required: true },

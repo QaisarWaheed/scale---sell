@@ -1,34 +1,57 @@
-import { Response } from "express";
+import { Request, Response } from "express";
 import { AuthRequest } from "../middleware/auth";
 import EscrowTransaction from "../models/EscrowTransaction";
 import Business from "../models/Business";
 import User from "../models/User";
+import Commission from "../models/Commission";
 import escrowService from "../services/escrowService";
+
+const COMMISSION_RATE = 0.05; // 5% commission
 
 // @desc    Initiate escrow transaction
 // @route   POST /api/escrow
 // @access  Private (Investor)
-export const initiateTransaction = async (req: AuthRequest, res: Response) => {
+export const initiateTransaction = async (req: Request, res: Response) => {
+  const authReq = req as AuthRequest;
   try {
-    const { businessId, amount } = req.body;
+    const { businessId, amount, transactionType = "purchase" } = req.body;
 
     const business = await Business.findById(businessId).populate("sellerId");
     if (!business) {
       return res.status(404).json({ message: "Business not found" });
     }
 
-    const buyer = await User.findById(req.user?._id);
+    const buyer = await User.findById(authReq.user?._id);
     if (!buyer) {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Calculate commission
+    const commissionAmount = amount * COMMISSION_RATE;
+    const sellerPayout = amount - commissionAmount;
+
     // Create local transaction first
     const transaction = await EscrowTransaction.create({
-      buyerId: req.user?._id,
+      buyerId: authReq.user?._id,
       sellerId: business.sellerId,
       businessId,
       amount,
-      logs: [{ action: "Transaction Initiated", user: req.user?._id }],
+      transactionType,
+      commissionAmount,
+      sellerPayout,
+      logs: [{ action: "Transaction Initiated", user: authReq.user?._id }],
+    });
+
+    // Create commission record
+    await Commission.create({
+      transactionId: transaction._id,
+      transactionType,
+      amount: commissionAmount,
+      transactionAmount: amount,
+      buyerId: authReq.user?._id,
+      sellerId: business.sellerId,
+      businessId,
+      status: "pending",
     });
 
     // If Escrow.com is configured, create transaction on their platform
@@ -75,7 +98,7 @@ export const initiateTransaction = async (req: AuthRequest, res: Response) => {
         transaction.logs.push({
           action: "Escrow.com transaction created",
           timestamp: new Date(),
-          user: req.user?._id!,
+          user: authReq.user?._id!,
         });
         await transaction.save();
       } catch (escrowError: any) {
@@ -84,7 +107,7 @@ export const initiateTransaction = async (req: AuthRequest, res: Response) => {
         transaction.logs.push({
           action: "Escrow.com integration failed - using internal escrow",
           timestamp: new Date(),
-          user: req.user?._id!,
+          user: authReq.user?._id!,
         });
         await transaction.save();
       }
@@ -99,13 +122,22 @@ export const initiateTransaction = async (req: AuthRequest, res: Response) => {
 // @desc    Update transaction status
 // @route   PUT /api/escrow/:id/status
 // @access  Private (Admin/Seller/Buyer depending on state)
-export const updateStatus = async (req: AuthRequest, res: Response) => {
+export const updateStatus = async (req: Request, res: Response) => {
+  const authReq = req as AuthRequest;
   try {
     const { status } = req.body;
     const transaction = await EscrowTransaction.findById(req.params.id);
 
     if (!transaction) {
       return res.status(404).json({ message: "Transaction not found" });
+    }
+
+    // If releasing funds, update commission status
+    if (status === "released" && transaction.status !== "released") {
+      await Commission.findOneAndUpdate(
+        { transactionId: transaction._id },
+        { status: "collected", collectedAt: new Date() }
+      );
     }
 
     // Add logic for who can change what status
@@ -115,7 +147,7 @@ export const updateStatus = async (req: AuthRequest, res: Response) => {
     transaction.logs.push({
       action: `Status changed to ${status}`,
       timestamp: new Date(),
-      user: req.user?._id!,
+      user: authReq.user?._id!,
     });
 
     await transaction.save();
@@ -128,10 +160,11 @@ export const updateStatus = async (req: AuthRequest, res: Response) => {
 // @desc    Get user transactions
 // @route   GET /api/escrow
 // @access  Private
-export const getTransactions = async (req: AuthRequest, res: Response) => {
+export const getTransactions = async (req: Request, res: Response) => {
+  const authReq = req as AuthRequest;
   try {
     const transactions = await EscrowTransaction.find({
-      $or: [{ buyerId: req.user?._id }, { sellerId: req.user?._id }],
+      $or: [{ buyerId: authReq.user?._id }, { sellerId: authReq.user?._id }],
     })
       .populate("businessId", "title description")
       .populate("buyerId", "email profile")
@@ -147,7 +180,8 @@ export const getTransactions = async (req: AuthRequest, res: Response) => {
 // @desc    Get single transaction by ID
 // @route   GET /api/escrow/:id
 // @access  Private
-export const getTransaction = async (req: AuthRequest, res: Response) => {
+export const getTransaction = async (req: Request, res: Response) => {
+  const authReq = req as AuthRequest;
   try {
     const transaction = await EscrowTransaction.findById(req.params.id)
       .populate("businessId", "title")
@@ -159,14 +193,14 @@ export const getTransaction = async (req: AuthRequest, res: Response) => {
     }
 
     // Check if user is authorized to view this transaction
-    const userId = req.user?._id?.toString();
+    const userId = authReq.user?._id?.toString();
     const buyerId = (transaction.buyerId as any)._id?.toString();
     const sellerId = (transaction.sellerId as any)._id?.toString();
 
     if (
       userId !== buyerId &&
       userId !== sellerId &&
-      req.user?.role !== "admin"
+      authReq.user?.role !== "admin"
     ) {
       return res.status(403).json({ message: "Not authorized" });
     }

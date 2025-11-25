@@ -5,6 +5,10 @@ export interface IEscrowTransaction extends Document {
   sellerId: mongoose.Types.ObjectId;
   businessId: mongoose.Types.ObjectId;
   amount: number;
+  transactionType: "purchase" | "investment"; // Type of transaction
+  relatedDocumentId?: mongoose.Types.ObjectId; // Offer or Investment ID
+  commissionAmount: number; // 5% commission
+  sellerPayout: number; // Amount seller receives (95%)
   status: "pending" | "holding" | "released" | "cancelled";
   escrowComTransactionId?: string;
   escrowComStatus?: string;
@@ -29,6 +33,14 @@ const EscrowTransactionSchema: Schema = new Schema(
       required: true,
     },
     amount: { type: Number, required: true },
+    transactionType: {
+      type: String,
+      enum: ["purchase", "investment"],
+      default: "purchase",
+    },
+    relatedDocumentId: { type: Schema.Types.ObjectId },
+    commissionAmount: { type: Number, required: true },
+    sellerPayout: { type: Number, required: true },
     status: {
       type: String,
       enum: ["pending", "holding", "released", "cancelled"],

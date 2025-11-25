@@ -2,12 +2,23 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IContract extends Document {
   transactionId: mongoose.Types.ObjectId;
+  contractType: "purchase" | "investment";
+  terms: {
+    businessName: string;
+    amount: number;
+    commissionAmount: number;
+    sellerPayout: number;
+    specificTerms?: string; // Type-specific terms
+  };
   pdfUrl: string;
   signatures: {
     buyer: boolean;
     seller: boolean;
     buyerSignedAt?: Date;
     sellerSignedAt?: Date;
+    adminApproved: boolean; // Admin must approve
+    adminApprovedAt?: Date;
+    adminApprovedBy?: mongoose.Types.ObjectId;
   };
   createdAt: Date;
   updatedAt: Date;

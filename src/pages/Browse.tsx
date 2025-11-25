@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { getListings } from "@/lib/listingApi";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -126,57 +127,67 @@ function BrowseContent() {
   return (
     <>
       {/* Filters */}
-      <FilterPanel
-        resultsCount={listings.length}
-        onClearFilters={() => {
-          setSearchTerm("");
-          setCategory("all");
-          setPriceRange("any");
-        }}
-      >
-        <div className="grid md:grid-cols-3 gap-4">
-          <div className="md:col-span-1">
+      <div className="mb-8 space-y-4">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
             <SearchBar
               placeholder="Search businesses..."
               value={searchTerm}
               onChange={setSearchTerm}
+              className="w-full"
             />
           </div>
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger>
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="E-Commerce">E-Commerce</SelectItem>
-              <SelectItem value="SaaS">SaaS</SelectItem>
-              <SelectItem value="Food & Beverage">Food & Beverage</SelectItem>
-              <SelectItem value="Services">Services</SelectItem>
-              <SelectItem value="Technology">Technology</SelectItem>
-              <SelectItem value="Health & Fitness">Health & Fitness</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex gap-4">
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="E-Commerce">E-Commerce</SelectItem>
+                <SelectItem value="SaaS">SaaS</SelectItem>
+                <SelectItem value="Food & Beverage">Food & Beverage</SelectItem>
+                <SelectItem value="Services">Services</SelectItem>
+                <SelectItem value="Technology">Technology</SelectItem>
+                <SelectItem value="Health & Fitness">
+                  Health & Fitness
+                </SelectItem>
+              </SelectContent>
+            </Select>
 
-          <Select value={priceRange} onValueChange={setPriceRange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Price Range" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="any">Any Price</SelectItem>
-              <SelectItem value="0-500k">Rs. 0 - 5 Cr</SelectItem>
-              <SelectItem value="500k-1m">Rs. 5 Cr - 10 Cr</SelectItem>
-              <SelectItem value="1m-5m">Rs. 10 Cr - 50 Cr</SelectItem>
-              <SelectItem value="5m+">Rs. 50 Cr+</SelectItem>
-            </SelectContent>
-          </Select>
+            <Select value={priceRange} onValueChange={setPriceRange}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Price Range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any Price</SelectItem>
+                <SelectItem value="0-500k">Rs. 0 - 5 Cr</SelectItem>
+                <SelectItem value="500k-1m">Rs. 5 Cr - 10 Cr</SelectItem>
+                <SelectItem value="1m-5m">Rs. 10 Cr - 50 Cr</SelectItem>
+                <SelectItem value="5m+">Rs. 50 Cr+</SelectItem>
+              </SelectContent>
+            </Select>
+            {(searchTerm || category !== "all" || priceRange !== "any") && (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setSearchTerm("");
+                  setCategory("all");
+                  setPriceRange("any");
+                }}
+              >
+                Clear
+              </Button>
+            )}
+          </div>
         </div>
-      </FilterPanel>
+      </div>
 
       {/* Listings Grid */}
       {loading ? (
         <LoadingSkeleton variant="card" count={6} className="mb-8" />
       ) : listings.length > 0 ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 ">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {listings.map((listing) => (
             <ListingCard
               key={listing._id}

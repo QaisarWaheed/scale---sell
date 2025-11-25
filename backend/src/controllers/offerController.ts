@@ -3,7 +3,10 @@ import { AuthRequest } from "../middleware/auth";
 import Offer from "../models/Offer";
 import Business from "../models/Business";
 import EscrowTransaction from "../models/EscrowTransaction";
+import Commission from "../models/Commission";
 import mongoose from "mongoose";
+
+const COMMISSION_RATE = 0.05; // 5% commission
 
 // @desc    Create a new offer
 // @route   POST /api/offers
@@ -116,6 +119,10 @@ export const approveOffer = async (req: AuthRequest, res: Response) => {
     session.startTransaction();
 
     try {
+      // Calculate commission (5%)
+      const commissionAmount = offer.offerAmount * COMMISSION_RATE;
+      const sellerPayout = offer.offerAmount - commissionAmount;
+
       // 1. Update offer status
       offer.status = "approved";
 
@@ -127,6 +134,10 @@ export const approveOffer = async (req: AuthRequest, res: Response) => {
             sellerId: offer.sellerId,
             businessId: offer.businessId,
             amount: offer.offerAmount,
+            transactionType: "purchase",
+            relatedDocumentId: offer._id,
+            commissionAmount,
+            sellerPayout,
             status: "pending",
             logs: [
               {
@@ -135,6 +146,23 @@ export const approveOffer = async (req: AuthRequest, res: Response) => {
                 timestamp: new Date(),
               },
             ],
+          },
+        ],
+        { session }
+      );
+
+      //  3. Create Commission Record
+      await Commission.create(
+        [
+          {
+            transactionId: escrowTransaction[0]._id,
+            transactionType: "purchase",
+            amount: commissionAmount,
+            transactionAmount: offer.offerAmount,
+            buyerId: offer.buyerId,
+            sellerId: offer.sellerId,
+            businessId: offer.businessId,
+            status: "pending",
           },
         ],
         { session }

@@ -1,32 +1,31 @@
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { SectionHeader } from "@/components/layouts/SectionHeader";
 import { StatsCard } from "@/components/StatsCard";
 import { Users, FileText, DollarSign, TrendingUp } from "lucide-react";
-// // import ManageUsersPage from "./admin/ManageUsersPage";
-// import ReviewListingsPage from "./admin/ReviewListingsPage";
-// import AdminAnalyticsPage from "./admin/AdminAnalyticsPage";
-// import MessagesPage from "./MessagesPage";
-// import TransactionsPage from "./TransactionsPage";
 import { useEffect, useState } from "react";
 import ManageUsersPage from "./ManageUsersPage";
 import ReviewListingsPage from "./ReviewListingsPage";
 import AdminAnalyticsPage from "./AdminAnalyticsPage";
 import MessagesPage from "../MessagesPage";
 import TransactionsPage from "../TransactionsPage";
+import CommissionsPage from "./CommissionsPage";
 import { getAllUsers, getAllListings, getSystemStats } from "@/lib/adminApi";
-import { formatCurrency } from "@/lib/utils";
+import { commissionApi } from "@/lib/commissionApi";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { User, BusinessListing } from "@/types";
+import { useCurrency } from "@/context/CurrencyContext";
 
 export default function AdminDashboard() {
   const [searchParams] = useSearchParams();
   const tab = searchParams.get("tab");
+  const { formatAmount } = useCurrency();
 
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeListings: 0,
-    totalTransactions: "$0", // Placeholder as we don't have admin transaction API yet
+    totalTransactions: 0,
     monthlyGrowth: "0%",
+    totalRevenue: 0,
   });
   const [pendingActions, setPendingActions] = useState({
     listingsReview: 0,
@@ -41,11 +40,13 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [users, listings, systemStats] = await Promise.all([
-          getAllUsers(),
-          getAllListings(),
-          getSystemStats(),
-        ]);
+        const [users, listings, systemStats, commissionStats] =
+          await Promise.all([
+            getAllUsers(),
+            getAllListings(),
+            getSystemStats(),
+            commissionApi.getTotal(),
+          ]);
 
         // Calculate Total Users
         const usersCount = users.length;
@@ -71,8 +72,9 @@ export default function AdminDashboard() {
         setStats({
           totalUsers: usersCount,
           activeListings: activeListingsCount,
-          totalTransactions: formatCurrency(systemStats.totalVolume || 0),
+          totalTransactions: systemStats.totalVolume || 0,
           monthlyGrowth: growth,
+          totalRevenue: commissionStats.totalCollected,
         });
 
         setPendingActions({
@@ -112,6 +114,7 @@ export default function AdminDashboard() {
   if (tab === "analytics") return <AdminAnalyticsPage />;
   if (tab === "messages") return <MessagesPage />;
   if (tab === "transactions") return <TransactionsPage />;
+  if (tab === "commissions") return <CommissionsPage />;
 
   if (loading) {
     return (
@@ -145,28 +148,26 @@ export default function AdminDashboard() {
           title="Platform Overview"
           subtitle="Monitor your platform's performance"
         />
-        <div className="grid md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="md:col-span-2">
+            <Link to="/dashboard?tab=commissions">
+              <StatsCard
+                title="Total Revenue"
+                value={formatAmount(stats.totalRevenue)}
+                icon={DollarSign}
+                subtitle="Platform commissions"
+                className="h-full hover:border-primary/50 transition-colors cursor-pointer"
+              />
+            </Link>
+          </div>
+
           <StatsCard
             title="Total Users"
             value={stats.totalUsers.toString()}
             icon={Users}
             subtitle="Active platform members"
-            // trend={{ value: "12% from last month", positive: true }}
           />
-          <StatsCard
-            title="Active Listings"
-            value={stats.activeListings.toString()}
-            icon={FileText}
-            subtitle="Published businesses"
-            // trend={{ value: "8% from last month", positive: true }}
-          />
-          <StatsCard
-            title="Total Transactions"
-            value={stats.totalTransactions}
-            icon={DollarSign}
-            subtitle="All-time volume"
-            // trend={{ value: "23% from last month", positive: true }}
-          />
+
           <StatsCard
             title="Monthly Growth"
             value={stats.monthlyGrowth}
@@ -174,6 +175,26 @@ export default function AdminDashboard() {
             subtitle="New users this month"
             trend={{ value: "Increase", positive: true }}
           />
+
+          <div className="md:col-span-2">
+            <StatsCard
+              title="Active Listings"
+              value={stats.activeListings.toString()}
+              icon={FileText}
+              subtitle="Published businesses"
+              className="h-full"
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <StatsCard
+              title="Total Transactions"
+              value={formatAmount(stats.totalTransactions)}
+              icon={DollarSign}
+              subtitle="All-time volume"
+              className="h-full"
+            />
+          </div>
         </div>
       </div>
 

@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { getErrorMessage } from "@/lib/utils";
+import { getErrorMessage, formatCurrency } from "@/lib/utils";
 
 export default function EscrowTransaction() {
   const { id } = useParams<{ id: string }>();
@@ -162,12 +162,36 @@ export default function EscrowTransaction() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 <div className="p-4 bg-muted/50 rounded-lg">
-                  <p className="text-sm text-muted-foreground mb-1">Amount</p>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Transaction Amount
+                  </p>
                   <p className="text-2xl font-bold flex items-center">
                     <DollarSign className="h-5 w-5 text-green-600 mr-1" />
-                    {transaction.amount.toLocaleString()}
+                    {formatCurrency(transaction.amount)}
                   </p>
                 </div>
+                {(role === "admin" || role === "seller") && (
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-1">
+                      {role === "admin" ? "Commission (5%)" : "Platform Fee"}
+                    </p>
+                    <p className="text-xl font-semibold flex items-center text-orange-600">
+                      <DollarSign className="h-4 w-4 mr-1" />
+                      {formatCurrency(transaction.commissionAmount || 0)}
+                    </p>
+                  </div>
+                )}
+                {(role === "admin" || role === "seller") && (
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Net Payout
+                    </p>
+                    <p className="text-xl font-semibold flex items-center text-green-600">
+                      <DollarSign className="h-4 w-4 mr-1" />
+                      {formatCurrency(transaction.sellerPayout || 0)}
+                    </p>
+                  </div>
+                )}
                 <div className="p-4 bg-muted/50 rounded-lg">
                   <p className="text-sm text-muted-foreground mb-1">Business</p>
                   <p className="font-semibold truncate">
@@ -191,6 +215,12 @@ export default function EscrowTransaction() {
                         typeof transaction.buyerId === "object"
                       ? transaction.buyerId.profile?.name || "Buyer"
                       : "Buyer"}
+                  </p>
+                </div>
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <p className="text-sm text-muted-foreground mb-1">Type</p>
+                  <p className="font-semibold capitalize">
+                    {transaction.transactionType || "Purchase"}
                   </p>
                 </div>
               </div>

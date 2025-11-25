@@ -1,14 +1,22 @@
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { SectionHeader } from "@/components/layouts/SectionHeader";
 import { StatsCard } from "@/components/StatsCard";
-import { Building2, Eye, TrendingUp, MessageSquare } from "lucide-react";
+import {
+  Building2,
+  Eye,
+  TrendingUp,
+  MessageSquare,
+  Briefcase,
+} from "lucide-react";
 import MyListingsPage from "./MyListingsPage";
 import MessagesPage from "../MessagesPage";
 import TransactionsPage from "../TransactionsPage";
 import IncomingOffersPage from "./IncomingOffersPage";
+import SellerInvestmentsPage from "./SellerInvestmentsPage";
 import { useEffect, useState } from "react";
 import { getMyListings } from "@/lib/listingApi";
 import { getThreads } from "@/lib/messageApi";
+import { investmentApi } from "@/lib/investmentApi";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { BusinessListing } from "@/types";
 
@@ -21,6 +29,7 @@ export default function SellerDashboard() {
     totalViews: 0,
     inquiries: 0,
     performance: "0%",
+    investments: 0,
   });
   const [recentActivity, setRecentActivity] = useState<
     { type: string; message: string; time: string; color: string }[]
@@ -30,9 +39,10 @@ export default function SellerDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [listings, threads] = await Promise.all([
+        const [listings, threads, investments] = await Promise.all([
           getMyListings(),
           getThreads(),
+          investmentApi.getSellerInvestments(),
         ]);
 
         // Calculate My Listings
@@ -61,6 +71,7 @@ export default function SellerDashboard() {
           totalViews: viewsCount,
           inquiries: inquiriesCount,
           performance: `${performanceScore}%`,
+          investments: investments.length,
         });
 
         // Generate Recent Activity from listings (e.g. newly created)
@@ -86,6 +97,7 @@ export default function SellerDashboard() {
   if (tab === "messages") return <MessagesPage />;
   if (tab === "transactions") return <TransactionsPage />;
   if (tab === "offers") return <IncomingOffersPage />;
+  if (tab === "investments") return <SellerInvestmentsPage />;
 
   if (loading) {
     return (
@@ -113,7 +125,7 @@ export default function SellerDashboard() {
           title="Seller Overview"
           subtitle="Monitor your business listings"
         />
-        <div className="grid md:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-5 gap-6">
           <StatsCard
             title="My Listings"
             value={stats.myListings.toString()}
@@ -133,6 +145,15 @@ export default function SellerDashboard() {
             icon={MessageSquare}
             subtitle="From interested buyers"
           />
+          <Link to="/dashboard?tab=investments">
+            <StatsCard
+              title="Investments"
+              value={stats.investments.toString()}
+              icon={Briefcase}
+              subtitle="Received offers"
+              className="hover:border-primary/50 transition-colors cursor-pointer"
+            />
+          </Link>
           <StatsCard
             title="Performance"
             value={stats.performance}

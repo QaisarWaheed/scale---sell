@@ -22,6 +22,10 @@ export interface EscrowTransaction {
   sellerId: string | PopulatedUser;
   businessId: string | PopulatedBusiness;
   amount: number;
+  transactionType: "purchase" | "investment";
+  relatedDocumentId?: string;
+  commissionAmount: number;
+  sellerPayout: number;
   status: "pending" | "holding" | "released" | "cancelled";
   escrowComTransactionId?: string;
   escrowComStatus?: string;

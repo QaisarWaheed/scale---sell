@@ -12,6 +12,15 @@ export interface BusinessListing {
   description: string;
   category: string;
   location: string;
+  listingType: "sale" | "investment" | "both";
+  investmentOptions?: {
+    seekingInvestment: boolean;
+    minInvestment?: number;
+    maxInvestment?: number;
+    equityOffered?: number;
+    revenueShareOffered?: number;
+    investmentPurpose?: string;
+  };
   financials: {
     askingPrice: number;
     revenue: number;
@@ -50,6 +59,15 @@ export interface CreateListingData {
   description: string;
   category: string;
   location: string;
+  listingType: "sale" | "investment" | "both";
+  investmentOptions?: {
+    seekingInvestment: boolean;
+    minInvestment?: number;
+    maxInvestment?: number;
+    equityOffered?: number;
+    revenueShareOffered?: number;
+    investmentPurpose?: string;
+  };
   financials: {
     askingPrice: number;
     revenue: number;
