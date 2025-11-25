@@ -146,3 +146,39 @@ export const getMessagesByBusiness = async (
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Start a conversation (or get existing)
+// @route   POST /api/messages/start-conversation
+// @access  Private
+export const startConversation = async (req: AuthRequest, res: Response) => {
+  try {
+    const { businessId, receiverId } = req.body;
+    const senderId = req.user?._id;
+
+    if (!senderId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    const participants = [senderId, receiverId].sort();
+
+    let thread = await Thread.findOne({
+      businessId,
+      participants: { $all: participants, $size: 2 },
+    });
+
+    if (!thread) {
+      thread = await Thread.create({
+        businessId,
+        participants,
+        unreadCounts: {
+          [senderId.toString()]: 0,
+          [receiverId]: 0,
+        },
+      });
+    }
+
+    res.status(200).json(thread);
+  } catch (error: any) {
+    res.status(400).json({ message: error.message });
+  }
+};

@@ -7,6 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { getListingById } from "@/lib/listingApi";
 import { toggleSavedListing, getSavedListings } from "@/lib/userApi";
+import { startConversation } from "@/lib/messageApi";
+import { getMyOffers } from "@/lib/offerApi";
+import { MakeOfferDialog } from "@/components/dialogs/MakeOfferDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import {
@@ -17,11 +20,10 @@ import {
   ArrowLeft,
   ShieldCheck,
   Heart,
+  MessageSquare,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { initiateTransaction } from "@/lib/escrowApi";
-import { getErrorMessage } from "@/lib/utils";
-import { BusinessListing } from "@/types";
+import { BusinessListing, Offer } from "@/types";
 
 export default function ListingDetails() {
   const { id } = useParams<{ id: string }>();
@@ -33,6 +35,7 @@ export default function ListingDetails() {
   const [role, setRole] = useState<string>("investor");
   const [isSaved, setIsSaved] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
+  const [existingOffer, setExistingOffer] = useState<Offer | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,6 +56,18 @@ export default function ListingDetails() {
                 typeof l === "string" ? l === id : l._id === id
             );
             setIsSaved(isSavedListing);
+
+            // Check if offer exists
+            if (session.user.user_metadata.role === "investor") {
+              const offers = await getMyOffers();
+              const offer = offers.find(
+                (o) =>
+                  (typeof o.businessId === "string"
+                    ? o.businessId
+                    : o.businessId._id) === id
+              );
+              if (offer) setExistingOffer(offer);
+            }
           }
         }
 
@@ -75,34 +90,6 @@ export default function ListingDetails() {
 
     fetchData();
   }, [id, toast]);
-
-  const handleStartEscrow = async () => {
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-
-    if (!listing) return;
-
-    try {
-      const transaction = await initiateTransaction(
-        listing._id,
-        listing.financials.askingPrice
-      );
-      toast({
-        title: "Success",
-        description: "Escrow transaction initiated!",
-      });
-      navigate(`/dashboard/escrow/${transaction._id}`);
-    } catch (error) {
-      console.error("Error starting escrow:", error);
-      toast({
-        title: "Error",
-        description: getErrorMessage(error),
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleToggleSave = async () => {
     if (!user) {
@@ -129,6 +116,29 @@ export default function ListingDetails() {
       });
     } finally {
       setSaveLoading(false);
+    }
+  };
+
+  const handleContactSeller = async () => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    if (!listing) return;
+
+    try {
+      const sellerId =
+        typeof listing.sellerId === "string"
+          ? listing.sellerId
+          : listing.sellerId._id;
+      await startConversation(listing._id, sellerId);
+      navigate("/dashboard?tab=messages");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to start conversation.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -296,16 +306,40 @@ export default function ListingDetails() {
               </div>
 
               {role === "investor" && (
-                <Button
-                  className="w-full mt-6"
-                  size="lg"
-                  onClick={handleStartEscrow}
-                >
-                  Start Acquisition
-                </Button>
+                <>
+                  {existingOffer ? (
+                    <div className="mt-6 p-4 bg-muted rounded-lg text-center">
+                      <p className="font-medium mb-2">Offer Sent</p>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => navigate("/dashboard?tab=offers")}
+                      >
+                        View Offer Status
+                      </Button>
+                    </div>
+                  ) : (
+                    <MakeOfferDialog
+                      businessId={listing._id}
+                      askingPrice={listing.financials.askingPrice}
+                      onSuccess={() => {
+                        // Refresh to show offer status
+                        window.location.reload();
+                      }}
+                      trigger={
+                        <Button className="w-full mt-6" size="lg">
+                          Make an Offer
+                        </Button>
+                      }
+                    />
+                  )}
+                </>
               )}
               {role === "seller" &&
-                user?.id === listing.sellerId.supabaseId && (
+                user?.id ===
+                  (typeof listing.sellerId === "string"
+                    ? listing.sellerId
+                    : listing.sellerId.supabaseId) && (
                   <Button
                     className="w-full mt-6"
                     variant="outline"
@@ -324,11 +358,15 @@ export default function ListingDetails() {
             <CardContent>
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                  {listing.sellerId?.profile?.name?.[0] || "S"}
+                  {(typeof listing.sellerId === "object" &&
+                    listing.sellerId.profile?.name?.[0]) ||
+                    "S"}
                 </div>
                 <div>
                   <p className="font-medium">
-                    {listing.sellerId?.profile?.name || "Seller"}
+                    {(typeof listing.sellerId === "object" &&
+                      listing.sellerId.profile?.name) ||
+                      "Seller"}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Verified Seller
@@ -338,8 +376,9 @@ export default function ListingDetails() {
               <Button
                 variant="outline"
                 className="w-full mt-4"
-                onClick={() => navigate("/dashboard?tab=messages")}
+                onClick={handleContactSeller}
               >
+                <MessageSquare className="mr-2 h-4 w-4" />
                 Contact Seller
               </Button>
             </CardContent>

@@ -5,6 +5,7 @@ import { Building2, Eye, TrendingUp, MessageSquare } from "lucide-react";
 import MyListingsPage from "./MyListingsPage";
 import MessagesPage from "../MessagesPage";
 import TransactionsPage from "../TransactionsPage";
+import IncomingOffersPage from "./IncomingOffersPage";
 import { useEffect, useState } from "react";
 import { getMyListings } from "@/lib/listingApi";
 import { getThreads } from "@/lib/messageApi";
@@ -84,6 +85,7 @@ export default function SellerDashboard() {
   if (tab === "listings") return <MyListingsPage />;
   if (tab === "messages") return <MessagesPage />;
   if (tab === "transactions") return <TransactionsPage />;
+  if (tab === "offers") return <IncomingOffersPage />;
 
   if (loading) {
     return (

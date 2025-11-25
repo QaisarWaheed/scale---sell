@@ -23,22 +23,31 @@ export interface User {
   updatedAt: string;
 }
 
+export type PaymentMethod =
+  | "jazzcash"
+  | "easypaisa"
+  | "bank_transfer"
+  | "other";
+
+export interface PaymentDetails {
+  phoneNumber?: string;
+  accountNumber?: string;
+  bankName?: string;
+  accountTitle?: string;
+}
+
 export interface Offer {
   _id: string;
-  businessId: BusinessListing | string; // Populated or ID
-  buyerId: User | string; // Populated or ID
-  sellerId: User | string; // Populated or ID
-  amount: number;
-  status:
-    | "pending"
-    | "accepted"
-    | "rejected"
-    | "in_escrow"
-    | "completed"
-    | "failed"
-    | "negotiation";
-  escrowStatus?: "pending" | "funded" | "released" | "disputed" | "refunded";
-  terms?: string;
+  businessId: BusinessListing | string;
+  buyerId: User | string;
+  sellerId: User | string;
+  offerAmount: number;
+  paymentMethod: PaymentMethod;
+  paymentDetails: PaymentDetails;
+  status: "pending" | "approved" | "rejected" | "withdrawn";
+  message?: string;
+  sellerResponse?: string;
+  escrowTransactionId?: string;
   createdAt: string;
   updatedAt: string;
 }

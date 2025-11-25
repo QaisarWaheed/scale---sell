@@ -1,25 +1,33 @@
 import dotenv from "dotenv";
-import path from "path";
 
-// Load env vars FIRST before any other imports
+// Load environment variables FIRST, before any other imports
 dotenv.config();
-dotenv.config({ path: path.join(__dirname, "../../.env") });
 
 import app from "./app";
 import { connectDB } from "./config/db";
-import { initializeCollections } from "./config/initDb";
-import uploadRoutes from "./routes/uploadRoutes";
-
-// Mount upload routes
-app.use("/api/upload", uploadRoutes);
 
 const PORT = process.env.PORT || 5000;
 
-connectDB().then(async () => {
-  // Initialize MongoDB collections and indexes
-  await initializeCollections();
+// Connect to MongoDB
+connectDB()
+  .then(() => {
+    console.log("MongoDB connected successfully");
 
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    // Start server
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+      console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+      console.log(
+        `Supabase URL: ${process.env.SUPABASE_URL ? "Set" : "Not Set"}`
+      );
+      console.log(
+        `Supabase Key: ${
+          process.env.SUPABASE_SERVICE_ROLE_KEY ? "Set" : "Not Set"
+        }`
+      );
+    });
+  })
+  .catch((error: unknown) => {
+    console.error("Failed to connect to MongoDB:", error);
+    process.exit(1);
   });
-});

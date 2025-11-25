@@ -3,12 +3,11 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl) {
-  throw new Error("SUPABASE_URL environment variable is missing");
-}
+// Supabase is optional - only used for auth in hybrid setup
+export const supabase =
+  supabaseUrl && supabaseServiceKey
+    ? createClient(supabaseUrl, supabaseServiceKey)
+    : null;
 
-if (!supabaseServiceKey) {
-  throw new Error("SUPABASE_SERVICE_ROLE_KEY environment variable is missing");
-}
-
-export const supabase = createClient(supabaseUrl, supabaseServiceKey);
+// Helper to check if supabase is configured
+export const isSupabaseConfigured = () => supabase !== null;

@@ -69,7 +69,7 @@ export const updateUserRole = async (req: AuthRequest, res: Response) => {
     }
 
     // Sync with Supabase
-    if (user.supabaseId) {
+    if (user.supabaseId && supabase) {
       const { error } = await supabase.auth.admin.updateUserById(
         user.supabaseId,
         { user_metadata: { role } }
@@ -101,7 +101,7 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
     }
 
     // Delete from Supabase
-    if (user.supabaseId) {
+    if (user.supabaseId && supabase) {
       const { error } = await supabase.auth.admin.deleteUser(user.supabaseId);
       if (error) {
         console.error("Supabase delete user error:", error);
@@ -130,6 +130,12 @@ export const createUser = async (req: AuthRequest, res: Response) => {
     }
 
     // Create user in Supabase Auth
+    if (!supabase) {
+      return res
+        .status(500)
+        .json({ message: "Authentication service not configured" });
+    }
+
     const { data: authData, error: authError } =
       await supabase.auth.admin.createUser({
         email,
@@ -189,7 +195,7 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
     }
 
     // Sync with Supabase if email, role, or password changes
-    if (user.supabaseId && (email || role || password)) {
+    if (user.supabaseId && supabase && (email || role || password)) {
       const updates: any = {};
       if (email) updates.email = email;
       if (password) updates.password = password;

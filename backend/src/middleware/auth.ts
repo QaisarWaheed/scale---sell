@@ -20,15 +20,26 @@ export const protect = async (
     try {
       token = req.headers.authorization.split(" ")[1];
 
+      // Check if supabase is configured
+      if (!supabase) {
+        return res
+          .status(500)
+          .json({ message: "Authentication service not configured" });
+      }
+
       const {
         data: { user },
         error,
       } = await supabase.auth.getUser(token);
 
       if (error || !user) {
+        console.error("Supabase Auth Error:", error?.message);
         return res
           .status(401)
-          .json({ message: "Not authorized, token failed" });
+          .json({
+            message: "Not authorized, token failed",
+            error: error?.message,
+          });
       }
 
       // Sync or Fetch User from MongoDB
@@ -54,7 +65,7 @@ export const protect = async (
       req.user = dbUser;
       next();
     } catch (error) {
-      console.error(error);
+      console.error("Auth Middleware Exception:", error);
       res.status(401).json({ message: "Not authorized, token failed" });
     }
   } else {

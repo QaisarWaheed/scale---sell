@@ -144,8 +144,10 @@ export default function CreateListing() {
           profit: Number(formData.profit),
         },
         images: finalImageUrl ? [finalImageUrl] : [],
-        yearEstablished: Number(formData.yearEstablished),
-        employees: Number(formData.employees),
+        yearEstablished: formData.yearEstablished
+          ? Number(formData.yearEstablished)
+          : undefined,
+        employees: formData.employees ? Number(formData.employees) : undefined,
         website: formData.website,
         reasonForSelling: formData.reasonForSelling,
       };

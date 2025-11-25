@@ -31,6 +31,7 @@ export interface BusinessListing {
   images?: string[];
   documents?: string[];
   status: "pending" | "approved" | "rejected" | "active" | "sold";
+  views?: number;
   createdAt: string;
   updatedAt: string;
 }
