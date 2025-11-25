@@ -81,7 +81,7 @@ export default function Landing() {
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-primary">$2.5B+</p>
+                  <p className="text-3xl font-bold text-primary">Rs. 250 Cr+</p>
                   <p className="text-sm text-muted-foreground">
                     Transaction Volume
                   </p>

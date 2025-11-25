@@ -1,6 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import { SectionHeader } from "@/components/layouts/SectionHeader";
 import { OfferCard } from "@/components/OfferCard";
 import { EmptyState } from "@/components/EmptyState";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -66,38 +64,23 @@ export default function IncomingOffersPage() {
 
   if (loading) return <LoadingSpinner centered />;
 
-  return (
-    <DashboardLayout
-      role="seller"
-      userEmail={user?.email}
-      title="Incoming Offers"
-    >
-      <div className="space-y-6">
-        <SectionHeader
-          title="Incoming Offers"
-          subtitle="Manage acquisition offers from investors"
+  return offers.length === 0 ? (
+    <EmptyState
+      icon={Inbox}
+      title="No offers yet"
+      description="You haven't received any offers for your listings yet."
+    />
+  ) : (
+    <div className="grid gap-6">
+      {offers.map((offer) => (
+        <OfferCard
+          key={offer._id}
+          offer={offer}
+          role="seller"
+          onUpdate={fetchOffers}
+          onMessage={handleMessage}
         />
-
-        {offers.length === 0 ? (
-          <EmptyState
-            icon={Inbox}
-            title="No offers yet"
-            description="You haven't received any offers for your listings yet."
-          />
-        ) : (
-          <div className="grid gap-6">
-            {offers.map((offer) => (
-              <OfferCard
-                key={offer._id}
-                offer={offer}
-                role="seller"
-                onUpdate={fetchOffers}
-                onMessage={handleMessage}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </DashboardLayout>
+      ))}
+    </div>
   );
 }

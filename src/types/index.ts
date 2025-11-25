@@ -64,8 +64,8 @@ export interface DashboardStats {
 export interface Message {
   _id: string;
   threadId: string;
-  senderId: string;
-  receiverId: string;
+  senderId: User | string;
+  receiverId: User | string;
   content: string;
   read: boolean;
   createdAt: string;

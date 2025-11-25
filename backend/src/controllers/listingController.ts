@@ -97,18 +97,34 @@ export const getListings = async (req: AuthRequest, res: Response) => {
 
 // @desc    Get single listing
 // @route   GET /api/listings/:id
-// @access  Public
+// @access  Public (with restrictions for non-approved listings)
 export const getListingById = async (req: AuthRequest, res: Response) => {
   try {
     const listing = await Business.findById(req.params.id).populate(
       "sellerId",
       "profile.name profile.avatarUrl email supabaseId"
     );
-    if (listing) {
-      res.json(listing);
-    } else {
-      res.status(404).json({ message: "Listing not found" });
+
+    if (!listing) {
+      return res.status(404).json({ message: "Listing not found" });
     }
+
+    // Check if listing is public (approved)
+    // If not, only owner or admin can view
+    if (listing.status !== "approved") {
+      const userId = req.user?._id?.toString();
+      const sellerId = listing.sellerId.toString();
+      const isOwner = userId === sellerId;
+      const isAdmin = req.user?.role === "admin";
+
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({
+          message: "This listing is not publicly available",
+        });
+      }
+    }
+
+    res.json(listing);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }

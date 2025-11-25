@@ -267,7 +267,7 @@ export default function CreateListing() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="revenue">Revenue ($)</Label>
+                  <Label htmlFor="revenue">Revenue (Rs.)</Label>
                   <Input
                     id="revenue"
                     name="revenue"
@@ -279,7 +279,7 @@ export default function CreateListing() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="profit">Profit / EBITDA ($)</Label>
+                  <Label htmlFor="profit">Profit / EBITDA (Rs.)</Label>
                   <Input
                     id="profit"
                     name="profit"
@@ -291,7 +291,7 @@ export default function CreateListing() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="askingPrice">Asking Price ($)</Label>
+                  <Label htmlFor="askingPrice">Asking Price (Rs.)</Label>
                   <Input
                     id="askingPrice"
                     name="askingPrice"

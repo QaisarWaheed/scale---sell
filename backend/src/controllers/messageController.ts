@@ -70,15 +70,19 @@ export const getMessages = async (req: AuthRequest, res: Response) => {
 
     const userId = req.user?._id?.toString();
     if (!thread.participants.some((p) => p.toString() === userId)) {
+      // Log unauthorized access attempt for security audit
+      console.warn(
+        `Unauthorized thread access attempt: User ${userId} tried to access thread ${threadId}`
+      );
       return res
         .status(403)
-        .json({ message: "Not authorized to view this thread" });
+        .json({ message: "Not authorized to view this conversation" });
     }
 
     const messages = await Message.find({ threadId })
       .sort({ createdAt: 1 })
-      .populate("senderId", "profile.name")
-      .populate("receiverId", "profile.name");
+      .populate("senderId", "profile.name supabaseId")
+      .populate("receiverId", "profile.name supabaseId");
 
     // Mark messages as read
     await Message.updateMany(

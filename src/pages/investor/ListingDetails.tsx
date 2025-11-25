@@ -286,7 +286,7 @@ export default function ListingDetails() {
                   Asking Price
                 </p>
                 <p className="text-3xl font-bold text-primary">
-                  ${listing.financials.askingPrice.toLocaleString()}
+                  Rs. {listing.financials.askingPrice.toLocaleString()}
                 </p>
               </div>
 
@@ -294,13 +294,13 @@ export default function ListingDetails() {
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Annual Revenue</span>
                   <span className="font-semibold">
-                    ${listing.financials.revenue.toLocaleString()}
+                    Rs. {listing.financials.revenue.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Annual Profit</span>
                   <span className="font-semibold text-green-600">
-                    ${listing.financials.profit.toLocaleString()}
+                    Rs. {listing.financials.profit.toLocaleString()}
                   </span>
                 </div>
               </div>

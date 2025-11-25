@@ -163,10 +163,10 @@ function BrowseContent() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="any">Any Price</SelectItem>
-              <SelectItem value="0-500k">$0 - $500K</SelectItem>
-              <SelectItem value="500k-1m">$500K - $1M</SelectItem>
-              <SelectItem value="1m-5m">$1M - $5M</SelectItem>
-              <SelectItem value="5m+">$5M+</SelectItem>
+              <SelectItem value="0-500k">Rs. 0 - 5 Cr</SelectItem>
+              <SelectItem value="500k-1m">Rs. 5 Cr - 10 Cr</SelectItem>
+              <SelectItem value="1m-5m">Rs. 10 Cr - 50 Cr</SelectItem>
+              <SelectItem value="5m+">Rs. 50 Cr+</SelectItem>
             </SelectContent>
           </Select>
         </div>

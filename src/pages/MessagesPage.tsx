@@ -94,9 +94,12 @@ export default function MessagesPage() {
 
     try {
       // Get the other participant (not the current user)
+      // Compare using supabaseId since currentUserId is a Supabase ID
       const otherParticipant = selectedThread.participants.find((p) => {
-        const participantId = typeof p === "object" ? p._id : p;
-        return participantId !== currentUserId;
+        if (typeof p === "object") {
+          return p.supabaseId !== currentUserId;
+        }
+        return p !== currentUserId;
       });
 
       if (!otherParticipant) {
@@ -143,9 +146,12 @@ export default function MessagesPage() {
     if (!currentUserId) return "User";
 
     // Find the participant who is NOT the current user
+    // Compare using supabaseId since currentUserId is a Supabase ID
     const otherParticipant = thread.participants.find((p) => {
-      const participantId = typeof p === "object" ? p._id : p;
-      return participantId !== currentUserId;
+      if (typeof p === "object") {
+        return p.supabaseId !== currentUserId;
+      }
+      return p !== currentUserId;
     });
 
     if (!otherParticipant) return "User";
@@ -259,7 +265,12 @@ export default function MessagesPage() {
                   />
                 ) : (
                   messages.map((message) => {
-                    const isMe = message.senderId === currentUserId;
+                    // Compare using supabaseId for proper user identification
+                    const senderId =
+                      typeof message.senderId === "object"
+                        ? message.senderId.supabaseId
+                        : message.senderId;
+                    const isMe = senderId === currentUserId;
                     return (
                       <div
                         key={message._id}
