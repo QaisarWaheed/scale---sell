@@ -10,7 +10,9 @@
     "build": "tsc",
     "postinstall": "npm run build",
     "seed": "ts-node src/scripts/seedListings.ts",
-    "create-user": "ts-node src/scripts/createUser.ts"
+    "create-user": "ts-node src/scripts/createUser.ts",
+    "fix-threads": "ts-node src/scripts/fixDuplicateThreads.ts",
+    "fix-null-businessids": "ts-node src/scripts/fixNullBusinessIds.ts"
   },
   "keywords": [],
   "author": "",

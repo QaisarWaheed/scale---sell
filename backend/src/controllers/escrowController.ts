@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { AuthRequest } from "../middleware/auth";
 import EscrowTransaction from "../models/EscrowTransaction";
-import Business from "../models/Business";
+import Listing from "../models/Listing";
 import User from "../models/User";
 import Commission from "../models/Commission";
 import escrowService from "../services/escrowService";
@@ -16,9 +16,9 @@ export const initiateTransaction = async (req: Request, res: Response) => {
   try {
     const { businessId, amount, transactionType = "purchase" } = req.body;
 
-    const business = await Business.findById(businessId).populate("sellerId");
-    if (!business) {
-      return res.status(404).json({ message: "Business not found" });
+    const listing = await Listing.findById(businessId).populate("sellerId");
+    if (!listing) {
+      return res.status(404).json({ message: "Listing not found" });
     }
 
     const buyer = await User.findById(authReq.user?._id);
@@ -33,7 +33,7 @@ export const initiateTransaction = async (req: Request, res: Response) => {
     // Create local transaction first
     const transaction = await EscrowTransaction.create({
       buyerId: authReq.user?._id,
-      sellerId: business.sellerId,
+      sellerId: listing.sellerId,
       businessId,
       amount,
       transactionType,
@@ -49,7 +49,7 @@ export const initiateTransaction = async (req: Request, res: Response) => {
       amount: commissionAmount,
       transactionAmount: amount,
       buyerId: authReq.user?._id,
-      sellerId: business.sellerId,
+      sellerId: listing.sellerId,
       businessId,
       status: "pending",
     });
@@ -57,7 +57,7 @@ export const initiateTransaction = async (req: Request, res: Response) => {
     // If Escrow.com is configured, create transaction on their platform
     if (escrowService.isConfigured()) {
       try {
-        const seller = business.sellerId as any;
+        const seller = listing.sellerId as any;
 
         const escrowTransaction = await escrowService.createTransaction({
           buyer: {
@@ -72,8 +72,8 @@ export const initiateTransaction = async (req: Request, res: Response) => {
           },
           items: [
             {
-              title: business.title,
-              description: business.description || "Business acquisition",
+              title: listing.title,
+              description: listing.description || "Business acquisition",
               type: "general_merchandise",
               inspection_period: 7,
               quantity: 1,
@@ -87,7 +87,7 @@ export const initiateTransaction = async (req: Request, res: Response) => {
             },
           ],
           currency: "USD",
-          description: `Purchase of ${business.title}`,
+          description: `Purchase of ${listing.title}`,
         });
 
         // Update transaction with Escrow.com data

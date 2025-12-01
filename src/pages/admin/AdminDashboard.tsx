@@ -9,6 +9,7 @@ import AdminAnalyticsPage from "./AdminAnalyticsPage";
 import MessagesPage from "../MessagesPage";
 import TransactionsPage from "../TransactionsPage";
 import CommissionsPage from "./CommissionsPage";
+import AdminContractsPage from "./AdminContractsPage";
 import { getAllUsers, getAllListings, getSystemStats } from "@/lib/adminApi";
 import { commissionApi } from "@/lib/commissionApi";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
@@ -74,7 +75,7 @@ export default function AdminDashboard() {
           activeListings: activeListingsCount,
           totalTransactions: systemStats.totalVolume || 0,
           monthlyGrowth: growth,
-          totalRevenue: commissionStats.totalCollected,
+          totalRevenue: commissionStats.totalAll || commissionStats.totalPending || 0,
         });
 
         setPendingActions({
@@ -111,6 +112,7 @@ export default function AdminDashboard() {
   // Render specific tab content
   if (tab === "users") return <ManageUsersPage />;
   if (tab === "listings") return <ReviewListingsPage />;
+  if (tab === "contracts") return <AdminContractsPage />;
   if (tab === "analytics") return <AdminAnalyticsPage />;
   if (tab === "messages") return <MessagesPage />;
   if (tab === "transactions") return <TransactionsPage />;

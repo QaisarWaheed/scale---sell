@@ -29,7 +29,7 @@ const EscrowTransactionSchema: Schema = new Schema(
     sellerId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     businessId: {
       type: Schema.Types.ObjectId,
-      ref: "Business",
+      ref: "Listing",
       required: true,
     },
     amount: { type: Number, required: true },

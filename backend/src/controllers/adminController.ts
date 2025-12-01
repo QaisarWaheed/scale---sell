@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { AuthRequest } from "../middleware/auth";
 import User from "../models/User";
-import Business from "../models/Business";
+import Listing from "../models/Listing";
 import EscrowTransaction from "../models/EscrowTransaction";
 import { supabase } from "../config/supabase";
 
@@ -11,21 +11,20 @@ import { supabase } from "../config/supabase";
 export const getSystemStats = async (req: AuthRequest, res: Response) => {
   try {
     const totalUsers = await User.countDocuments();
-    const activeListings = await Business.countDocuments({
+    const activeListings = await Listing.countDocuments({
       status: "approved",
     });
-    const pendingListings = await Business.countDocuments({
+    const pendingListings = await Listing.countDocuments({
       status: "pending",
     });
     const completedDeals = await EscrowTransaction.countDocuments({
       status: "released",
     });
     const totalVolume = await EscrowTransaction.aggregate([
-      { $match: { status: "released" } },
       { $group: { _id: null, total: { $sum: "$amount" } } },
     ]);
 
-    const totalListings = await Business.countDocuments();
+    const totalListings = await Listing.countDocuments();
 
     res.json({
       totalUsers,
@@ -241,7 +240,7 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
 // @access  Private (Admin)
 export const getAllListings = async (req: AuthRequest, res: Response) => {
   try {
-    const listings = await Business.find()
+    const listings = await Listing.find()
       .populate("sellerId", "profile.name email")
       .sort({ createdAt: -1 });
     res.json(listings);
@@ -255,7 +254,7 @@ export const getAllListings = async (req: AuthRequest, res: Response) => {
 // @access  Private (Admin)
 export const getPendingListings = async (req: AuthRequest, res: Response) => {
   try {
-    const listings = await Business.find({ status: "pending" })
+    const listings = await Listing.find({ status: "pending" })
       .populate("sellerId", "profile.name email")
       .sort({ createdAt: -1 });
     res.json(listings);
@@ -269,7 +268,7 @@ export const getPendingListings = async (req: AuthRequest, res: Response) => {
 // @access  Private (Admin)
 export const approveListing = async (req: AuthRequest, res: Response) => {
   try {
-    const listing = await Business.findById(req.params.id);
+    const listing = await Listing.findById(req.params.id);
     if (!listing) {
       return res.status(404).json({ message: "Listing not found" });
     }
@@ -287,7 +286,7 @@ export const approveListing = async (req: AuthRequest, res: Response) => {
 // @access  Private (Admin)
 export const rejectListing = async (req: AuthRequest, res: Response) => {
   try {
-    const listing = await Business.findById(req.params.id);
+    const listing = await Listing.findById(req.params.id);
     if (!listing) {
       return res.status(404).json({ message: "Listing not found" });
     }
@@ -305,7 +304,7 @@ export const rejectListing = async (req: AuthRequest, res: Response) => {
 // @access  Private (Admin)
 export const deleteListingAdmin = async (req: AuthRequest, res: Response) => {
   try {
-    const listing = await Business.findById(req.params.id);
+    const listing = await Listing.findById(req.params.id);
     if (!listing) {
       return res.status(404).json({ message: "Listing not found" });
     }

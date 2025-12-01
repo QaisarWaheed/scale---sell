@@ -13,7 +13,7 @@ const ThreadSchema: Schema = new Schema(
   {
     businessId: {
       type: Schema.Types.ObjectId,
-      ref: "Business",
+      ref: "Listing",
       required: true,
     },
     participants: [

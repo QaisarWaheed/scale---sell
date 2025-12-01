@@ -23,6 +23,7 @@ export const getTotalCommissions = async (req: Request, res: Response) => {
           totalPending: {
             $sum: { $cond: [{ $eq: ["$status", "pending"] }, "$amount", 0] },
           },
+          totalAll: { $sum: "$amount" },
           count: { $sum: 1 },
         },
       },
@@ -31,6 +32,7 @@ export const getTotalCommissions = async (req: Request, res: Response) => {
     const summary = result[0] || {
       totalCollected: 0,
       totalPending: 0,
+      totalAll: 0,
       count: 0,
     };
 

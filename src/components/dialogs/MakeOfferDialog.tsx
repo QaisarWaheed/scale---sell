@@ -122,6 +122,23 @@ export function MakeOfferDialog({
 
   const renderPaymentFields = () => {
     switch (formData.paymentMethod) {
+      case "escrow":
+        return (
+          <div className="p-4 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800 rounded-lg">
+            <div className="flex items-start gap-3">
+              <div className="text-2xl">🛡️</div>
+              <div className="space-y-2 text-sm">
+                <p className="font-semibold text-green-800 dark:text-green-200">Escrow Protection Enabled</p>
+                <ul className="space-y-1 text-green-700 dark:text-green-300">
+                  <li>✓ Funds held securely by platform</li>
+                  <li>✓ Released only after contract signed</li>
+                  <li>✓ 5% platform fee (deducted from escrow)</li>
+                  <li>✓ Payment link provided after approval</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        );
       case "jazzcash":
       case "easypaisa":
         return (
@@ -212,6 +229,15 @@ export function MakeOfferDialog({
                 <SelectValue placeholder="Select payment method" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="escrow">
+                  <div className="flex items-center gap-2">
+                    <span className="text-green-600">🛡️</span>
+                    <div>
+                      <div className="font-semibold">Platform Escrow (Recommended)</div>
+                      <div className="text-xs text-muted-foreground">Secure payment - Funds held until contract signed</div>
+                    </div>
+                  </div>
+                </SelectItem>
                 <SelectItem value="jazzcash">JazzCash</SelectItem>
                 <SelectItem value="easypaisa">EasyPaisa</SelectItem>
                 <SelectItem value="bank_transfer">Bank Transfer</SelectItem>

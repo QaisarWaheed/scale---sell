@@ -13,6 +13,7 @@ import MessagesPage from "../MessagesPage";
 import TransactionsPage from "../TransactionsPage";
 import IncomingOffersPage from "./IncomingOffersPage";
 import SellerInvestmentsPage from "./SellerInvestmentsPage";
+import SellerContractsPage from "./SellerContractsPage";
 import { useEffect, useState } from "react";
 import { getMyListings } from "@/lib/listingApi";
 import { getThreads } from "@/lib/messageApi";
@@ -98,6 +99,7 @@ export default function SellerDashboard() {
   if (tab === "transactions") return <TransactionsPage />;
   if (tab === "offers") return <IncomingOffersPage />;
   if (tab === "investments") return <SellerInvestmentsPage />;
+  if (tab === "contracts") return <SellerContractsPage />;
 
   if (loading) {
     return (

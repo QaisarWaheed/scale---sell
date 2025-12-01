@@ -27,6 +27,7 @@ export type PaymentMethod =
   | "jazzcash"
   | "easypaisa"
   | "bank_transfer"
+  | "escrow"
   | "other";
 
 export interface PaymentDetails {
@@ -47,7 +48,7 @@ export interface Offer {
   status: "pending" | "approved" | "rejected" | "withdrawn";
   message?: string;
   sellerResponse?: string;
-  escrowTransactionId?: string;
+  escrowTransactionId?: string | EscrowTransaction;
   createdAt: string;
   updatedAt: string;
 }

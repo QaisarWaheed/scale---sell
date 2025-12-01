@@ -36,6 +36,9 @@ app.use("/api/investments", investmentRoutes);
 app.use("/api/commissions", commissionRoutes);
 app.use("/api/contact", contactRoutes);
 
+// Serve static uploads folder for PDFs
+app.use("/uploads", express.static("uploads"));
+
 app.get("/", (req, res) => {
   res.send("Scale & Sell API is running");
 });

@@ -33,6 +33,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
+      console.log("ChatContext: Got user", user?.id);
       setCurrentUserId(user?.id || null);
     };
     getUser();
@@ -40,9 +41,15 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Fetch threads
   const fetchThreads = useCallback(async () => {
+    if (!currentUserId) {
+      console.log("ChatContext: Skipping fetch - no user");
+      return;
+    }
+    console.log("ChatContext: Fetching threads...");
     try {
       setLoadingThreads(true);
       const data = await getThreads();
+      console.log("ChatContext: Fetched threads", data.length);
       setThreads(data);
     } catch (error) {
       console.error("Error fetching threads:", error);
@@ -54,7 +61,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setLoadingThreads(false);
     }
-  }, [toast]);
+  }, [currentUserId, toast]);
 
   // Fetch messages for selected thread
   const fetchMessages = useCallback(async (threadId: string) => {
@@ -62,21 +69,37 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoadingMessages(true);
       const data = await getMessages(threadId);
       setMessages(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching messages:", error);
-      toast({
-        title: "Error fetching messages",
-        description: "Failed to load the conversation.",
-        variant: "destructive",
-      });
+      
+      // Handle invalid thread (null businessId)
+      if (error.response?.data?.invalidThread) {
+        toast({
+          title: "Invalid Conversation",
+          description: error.response.data.message,
+          variant: "destructive",
+        });
+        // Clear the invalid thread
+        setSelectedThread(null);
+        // Refresh threads to remove it from list
+        fetchThreads();
+      } else {
+        toast({
+          title: "Error fetching messages",
+          description: "Failed to load the conversation.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoadingMessages(false);
     }
-  }, [toast]);
+  }, [toast, fetchThreads]);
 
   // Initial fetch
   useEffect(() => {
+    console.log("ChatContext: Initial fetch effect, currentUserId:", currentUserId);
     if (currentUserId) {
+      console.log("ChatContext: Calling fetchThreads");
       fetchThreads();
     }
   }, [currentUserId, fetchThreads]);
@@ -107,9 +130,27 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const receiverId = typeof otherParticipant === "object" ? otherParticipant._id : otherParticipant;
       const business = selectedThread.businessId as BusinessListing;
+      
+      console.log("Sending message - businessId check:", {
+        business,
+        type: typeof business,
+        hasId: business && typeof business === "object" ? !!business._id : false,
+        threadId: selectedThread._id
+      });
+      
+      // Get businessId - it could be a string or an object
+      let businessId: string;
+      if (typeof business === "string") {
+        businessId = business;
+      } else if (business && typeof business === "object" && business._id) {
+        businessId = business._id;
+      } else {
+        console.error("Business information missing in thread:", selectedThread);
+        throw new Error("Business information is missing. Please start a new conversation from the listing page.");
+      }
 
       await apiSendMessage({
-        businessId: business._id,
+        businessId,
         content,
         receiverId,
       });

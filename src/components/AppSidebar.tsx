@@ -42,6 +42,7 @@ export function AppSidebar({ role, userEmail, userName }: AppSidebarProps) {
       label: "Review Listings",
       href: "/dashboard?tab=listings",
     },
+    { icon: FileText, label: "Contracts", href: "/dashboard?tab=contracts" },
     { icon: TrendingUp, label: "Analytics", href: "/dashboard?tab=analytics" },
     { icon: MessageSquare, label: "Messages", href: "/dashboard?tab=messages" },
   ];
@@ -64,6 +65,7 @@ export function AppSidebar({ role, userEmail, userName }: AppSidebarProps) {
     { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
     { icon: Building2, label: "My Listings", href: "/dashboard?tab=listings" },
     { icon: FileText, label: "Incoming Offers", href: "/dashboard?tab=offers" },
+    { icon: FileText, label: "Contracts", href: "/dashboard?tab=contracts" },
     { icon: MessageSquare, label: "Messages", href: "/dashboard?tab=messages" },
     {
       icon: DollarSign,

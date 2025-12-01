@@ -18,7 +18,7 @@ const MessageSchema: Schema = new Schema(
     receiverId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     businessId: {
       type: Schema.Types.ObjectId,
-      ref: "Business",
+      ref: "Listing",
       required: true,
     },
     content: { type: String, required: true },

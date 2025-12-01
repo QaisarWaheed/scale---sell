@@ -22,10 +22,13 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
   const user = await User.findById(req.user?._id);
 
   if (user) {
-    user.profile.name = req.body.name || user.profile.name;
-    user.profile.phone = req.body.phone || user.profile.phone;
-    user.profile.location = req.body.location || user.profile.location;
-    user.profile.avatarUrl = req.body.avatarUrl || user.profile.avatarUrl;
+    // Handle both direct and nested profile updates
+    const profileData = req.body.profile || req.body;
+    
+    user.profile.name = profileData.name || user.profile.name;
+    user.profile.phone = profileData.phone || user.profile.phone;
+    user.profile.location = profileData.location || user.profile.location;
+    user.profile.avatarUrl = profileData.avatarUrl || user.profile.avatarUrl;
 
     const updatedUser = await user.save();
     res.json(updatedUser);

@@ -5,7 +5,7 @@ export interface IOffer extends Document {
   sellerId: mongoose.Types.ObjectId;
   businessId: mongoose.Types.ObjectId;
   offerAmount: number;
-  paymentMethod: "jazzcash" | "easypaisa" | "bank_transfer" | "other";
+  paymentMethod: "jazzcash" | "easypaisa" | "bank_transfer" | "escrow" | "other";
   paymentDetails: {
     phoneNumber?: string;
     accountNumber?: string;
@@ -26,13 +26,13 @@ const OfferSchema: Schema = new Schema(
     sellerId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     businessId: {
       type: Schema.Types.ObjectId,
-      ref: "Business",
+      ref: "Listing",
       required: true,
     },
     offerAmount: { type: Number, required: true },
     paymentMethod: {
       type: String,
-      enum: ["jazzcash", "easypaisa", "bank_transfer", "other"],
+      enum: ["jazzcash", "easypaisa", "bank_transfer", "escrow", "other"],
       required: true,
     },
     paymentDetails: {

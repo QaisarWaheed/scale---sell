@@ -31,12 +31,27 @@ const ContractSchema: Schema = new Schema(
       ref: "EscrowTransaction",
       required: true,
     },
+    contractType: {
+      type: String,
+      enum: ["purchase", "investment"],
+      required: true,
+    },
+    terms: {
+      businessName: { type: String, required: true },
+      amount: { type: Number, required: true },
+      commissionAmount: { type: Number, required: true },
+      sellerPayout: { type: Number, required: true },
+      specificTerms: { type: String },
+    },
     pdfUrl: { type: String, required: true },
     signatures: {
       buyer: { type: Boolean, default: false },
       seller: { type: Boolean, default: false },
       buyerSignedAt: Date,
       sellerSignedAt: Date,
+      adminApproved: { type: Boolean, default: false },
+      adminApprovedAt: Date,
+      adminApprovedBy: { type: Schema.Types.ObjectId, ref: "User" },
     },
   },
   { timestamps: true }

@@ -1,7 +1,6 @@
 import { Response } from "express";
 import { AuthRequest } from "../middleware/auth";
 import Investment from "../models/Investment";
-import Business from "../models/Business";
 import Listing from "../models/Listing";
 import EscrowTransaction from "../models/EscrowTransaction";
 import Commission from "../models/Commission";
@@ -29,16 +28,13 @@ export const createInvestment = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    // Verify business exists and accepts investments
-    const business = await Business.findById(businessId);
-    if (!business) {
-      return res.status(404).json({ message: "Business not found" });
+    // Verify listing exists and accepts investments
+    const listing = await Listing.findById(businessId);
+    if (!listing) {
+      return res.status(404).json({ message: "Listing not found" });
     }
 
-    // Get the listing to check investment options
-    const listing = await Listing.findOne({ _id: businessId });
     if (
-      listing &&
       listing.listingType !== "investment" &&
       listing.listingType !== "both"
     ) {
@@ -79,7 +75,7 @@ export const createInvestment = async (req: AuthRequest, res: Response) => {
 
     const investment = await Investment.create({
       investorId,
-      sellerId: business.sellerId,
+      sellerId: listing.sellerId,
       businessId,
       investmentAmount,
       investmentType,

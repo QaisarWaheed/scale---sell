@@ -54,7 +54,8 @@ export const protect = async (
           email: user.email,
           role: userRole,
           profile: {
-            name: user.user_metadata?.full_name || "",
+            name: user.user_metadata?.full_name || user.user_metadata?.name || "",
+            phone: user.user_metadata?.phone || "",
           },
           savedListings: [],
         });

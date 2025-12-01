@@ -1,6 +1,6 @@
 import { Response } from "express";
 import { AuthRequest } from "../middleware/auth";
-import Business from "../models/Business";
+import Listing from "../models/Listing";
 
 // @desc    Create a new listing
 // @route   POST /api/listings
@@ -39,12 +39,14 @@ export const createListing = async (req: AuthRequest, res: Response) => {
       reasonForSelling,
     };
 
-    const listing = await Business.create({
+    const listing = await Listing.create({
       sellerId: req.user?._id,
       title,
       category,
       description,
       location,
+      listingType: req.body.listingType || "sale",
+      investmentOptions: req.body.investmentOptions,
       financials: financialsData,
       details: detailsData,
       images: images || [],
@@ -85,7 +87,7 @@ export const getListings = async (req: AuthRequest, res: Response) => {
       if (maxPrice) query["financials.askingPrice"].$lte = Number(maxPrice);
     }
 
-    const listings = await Business.find(query).populate(
+    const listings = await Listing.find(query).populate(
       "sellerId",
       "profile.name profile.avatarUrl"
     );
@@ -100,7 +102,7 @@ export const getListings = async (req: AuthRequest, res: Response) => {
 // @access  Public (with restrictions for non-approved listings)
 export const getListingById = async (req: AuthRequest, res: Response) => {
   try {
-    const listing = await Business.findById(req.params.id).populate(
+    const listing = await Listing.findById(req.params.id).populate(
       "sellerId",
       "profile.name profile.avatarUrl email supabaseId"
     );
@@ -135,7 +137,7 @@ export const getListingById = async (req: AuthRequest, res: Response) => {
 // @access  Private (Seller)
 export const updateListing = async (req: AuthRequest, res: Response) => {
   try {
-    const listing = await Business.findById(req.params.id);
+    const listing = await Listing.findById(req.params.id);
 
     if (!listing) {
       return res.status(404).json({ message: "Listing not found" });
@@ -149,7 +151,7 @@ export const updateListing = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ message: "Not authorized" });
     }
 
-    const updatedListing = await Business.findByIdAndUpdate(
+    const updatedListing = await Listing.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true }
@@ -165,7 +167,7 @@ export const updateListing = async (req: AuthRequest, res: Response) => {
 // @access  Private (Seller/Admin)
 export const deleteListing = async (req: AuthRequest, res: Response) => {
   try {
-    const listing = await Business.findById(req.params.id);
+    const listing = await Listing.findById(req.params.id);
 
     if (!listing) {
       return res.status(404).json({ message: "Listing not found" });
@@ -190,7 +192,7 @@ export const deleteListing = async (req: AuthRequest, res: Response) => {
 // @access  Private (Seller)
 export const getMyListings = async (req: AuthRequest, res: Response) => {
   try {
-    const listings = await Business.find({ sellerId: req.user?._id }).sort({
+    const listings = await Listing.find({ sellerId: req.user?._id }).sort({
       createdAt: -1,
     });
     res.json(listings);

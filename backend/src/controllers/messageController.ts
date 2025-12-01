@@ -16,8 +16,14 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    // Find or create thread
-    const participants = [senderId, receiverId].sort(); // Sort to ensure consistent ordering
+    // Convert receiverId to ObjectId if it's a string
+    const receiverObjectId = new mongoose.Types.ObjectId(receiverId);
+    
+    // Find or create thread with consistent ObjectId sorting
+    const participants = [senderId, receiverObjectId].sort((a, b) => 
+      a.toString().localeCompare(b.toString())
+    );
+    
     let thread = await Thread.findOne({
       businessId,
       participants: { $all: participants, $size: 2 },
@@ -29,7 +35,7 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
         participants,
         unreadCounts: {
           [senderId.toString()]: 0,
-          [receiverId]: 0,
+          [receiverObjectId.toString()]: 0,
         },
       });
     }
@@ -38,19 +44,20 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
     const message = await Message.create({
       threadId: thread._id,
       senderId,
-      receiverId,
+      receiverId: receiverObjectId,
       businessId,
       content,
     });
 
     // Update thread's last message and unread count
     thread.lastMessage = message._id;
-    const currentUnreads = thread.unreadCounts.get(receiverId) || 0;
-    thread.unreadCounts.set(receiverId, currentUnreads + 1);
+    const currentUnreads = thread.unreadCounts.get(receiverObjectId.toString()) || 0;
+    thread.unreadCounts.set(receiverObjectId.toString(), currentUnreads + 1);
     await thread.save();
 
     res.status(201).json(message);
   } catch (error: any) {
+    console.error('Error sending message:', error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -63,16 +70,30 @@ export const getMessages = async (req: AuthRequest, res: Response) => {
     const { threadId } = req.params;
 
     // Verify user is part of this thread
-    const thread = await Thread.findById(threadId);
+    const thread = await Thread.findById(threadId).populate('businessId');
     if (!thread) {
       return res.status(404).json({ message: "Thread not found" });
     }
 
+    // Check if thread has valid businessId
+    if (!thread.businessId) {
+      console.error(`Thread ${threadId} has null businessId - invalid thread`);
+      return res.status(400).json({ 
+        message: "This conversation is invalid. Please start a new conversation from the listing page.",
+        invalidThread: true
+      });
+    }
+
     const userId = req.user?._id?.toString();
-    if (!thread.participants.some((p) => p.toString() === userId)) {
+    const participantIds = thread.participants.map((p) => p.toString());
+    
+    console.log(`Checking thread access: User ${userId}, Participants:`, participantIds);
+    
+    if (!participantIds.includes(userId || '')) {
       // Log unauthorized access attempt for security audit
       console.warn(
-        `Unauthorized thread access attempt: User ${userId} tried to access thread ${threadId}`
+        `Unauthorized thread access attempt: User ${userId} tried to access thread ${threadId}`,
+        `Thread participants: ${participantIds.join(', ')}`
       );
       return res
         .status(403)
@@ -81,12 +102,12 @@ export const getMessages = async (req: AuthRequest, res: Response) => {
 
     const messages = await Message.find({ threadId })
       .sort({ createdAt: 1 })
-      .populate("senderId", "profile.name supabaseId")
-      .populate("receiverId", "profile.name supabaseId");
+      .populate("senderId", "profile.name supabaseId email")
+      .populate("receiverId", "profile.name supabaseId email");
 
     // Mark messages as read
     await Message.updateMany(
-      { threadId, receiverId: userId, read: false },
+      { threadId, receiverId: req.user?._id, read: false },
       { read: true }
     );
 
@@ -98,6 +119,7 @@ export const getMessages = async (req: AuthRequest, res: Response) => {
 
     res.json(messages);
   } catch (error: any) {
+    console.error("Error fetching messages:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -115,7 +137,7 @@ export const getThreads = async (req: AuthRequest, res: Response) => {
       .populate("businessId")
       .populate({
         path: "participants",
-        select: "profile.name email",
+        select: "profile.name email supabaseId",
       })
       .populate({
         path: "lastMessage",
@@ -125,6 +147,7 @@ export const getThreads = async (req: AuthRequest, res: Response) => {
 
     res.json(threads);
   } catch (error: any) {
+    console.error("Error fetching threads:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -163,7 +186,23 @@ export const startConversation = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    const participants = [senderId, receiverId].sort();
+    const receiverObjectId = new mongoose.Types.ObjectId(receiverId);
+    
+    // Prevent self-conversation
+    if (senderId.toString() === receiverObjectId.toString()) {
+      return res.status(400).json({ message: "Cannot start conversation with yourself" });
+    }
+    
+    const participants = [senderId, receiverObjectId].sort((a, b) => 
+      a.toString().localeCompare(b.toString())
+    );
+
+    console.log('Starting conversation:', {
+      senderId: senderId.toString(),
+      receiverId: receiverObjectId.toString(),
+      businessId,
+      participants: participants.map(p => p.toString())
+    });
 
     let thread = await Thread.findOne({
       businessId,
@@ -176,13 +215,17 @@ export const startConversation = async (req: AuthRequest, res: Response) => {
         participants,
         unreadCounts: {
           [senderId.toString()]: 0,
-          [receiverId]: 0,
+          [receiverObjectId.toString()]: 0,
         },
       });
+      console.log('Created new thread:', thread._id);
+    } else {
+      console.log('Found existing thread:', thread._id);
     }
 
     res.status(200).json(thread);
   } catch (error: any) {
+    console.error('Error starting conversation:', error);
     res.status(400).json({ message: error.message });
   }
 };

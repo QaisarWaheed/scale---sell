@@ -138,9 +138,28 @@ export default function ListingDetails() {
         typeof listing.sellerId === "string"
           ? listing.sellerId
           : listing.sellerId._id;
-      await startConversation(listing._id, sellerId);
-      navigate("/dashboard?tab=messages");
-    } catch (error) {
+      
+      // Start or get existing conversation
+      const thread = await startConversation(listing._id, sellerId);
+      
+      // Navigate to messages with the thread ID
+      navigate(`/dashboard?tab=messages&thread=${thread._id}`);
+      
+      toast({
+        title: "Success",
+        description: "Conversation started with seller.",
+      });
+    } catch (error: any) {
+      // Handle self-conversation error gracefully
+      if (error.response?.data?.message?.includes("yourself")) {
+        toast({
+          title: "Info",
+          description: "You cannot message yourself.",
+          variant: "default",
+        });
+        return;
+      }
+      
       toast({
         title: "Error",
         description: "Failed to start conversation.",
@@ -496,38 +515,46 @@ export default function ListingDetails() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Seller Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                  {(typeof listing.sellerId === "object" &&
-                    listing.sellerId.profile?.name?.[0]) ||
-                    "S"}
-                </div>
-                <div>
-                  <p className="font-medium">
+          {/* Only show Seller Information card if current user is NOT the seller */}
+          {!(
+            user?.id ===
+            (typeof listing.sellerId === "string"
+              ? listing.sellerId
+              : listing.sellerId.supabaseId)
+          ) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Seller Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
                     {(typeof listing.sellerId === "object" &&
-                      listing.sellerId.profile?.name) ||
-                      "Seller"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Verified Seller
-                  </p>
+                      listing.sellerId.profile?.name?.[0]) ||
+                      "S"}
+                  </div>
+                  <div>
+                    <p className="font-medium">
+                      {(typeof listing.sellerId === "object" &&
+                        listing.sellerId.profile?.name) ||
+                        "Seller"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Verified Seller
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <Button
-                variant="outline"
-                className="w-full mt-4"
-                onClick={handleContactSeller}
-              >
-                <MessageSquare className="mr-2 h-4 w-4" />
-                Contact Seller
-              </Button>
-            </CardContent>
-          </Card>
+                <Button
+                  variant="outline"
+                  className="w-full mt-4"
+                  onClick={handleContactSeller}
+                >
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  Contact Seller
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </DashboardLayout>

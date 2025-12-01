@@ -111,9 +111,21 @@ export default function ContractsPage() {
                       <p>Created: {new Date(contract.createdAt).toLocaleDateString()}</p>
                     </div>
                     <div className="flex gap-2 w-full md:w-auto">
-                      <Button variant="outline" size="sm" className="flex-1 md:flex-none">
-                        <Download className="mr-2 h-4 w-4" />
-                        Download
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1 md:flex-none"
+                        asChild
+                      >
+                        <a 
+                          href={contract.pdfUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          download
+                        >
+                          <Download className="mr-2 h-4 w-4" />
+                          Download
+                        </a>
                       </Button>
                       {status === "draft" && (
                         <Button 

@@ -120,9 +120,16 @@ export function OfferCard({
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div>
-            <h3 className="font-semibold text-lg">
-              {business?.title || "Unknown Business"}
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-lg">
+                {business?.title || "Unknown Business"}
+              </h3>
+              {offer.paymentMethod === "escrow" && (
+                <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-xs">
+                  🛡️ Escrow
+                </Badge>
+              )}
+            </div>
             <p className="text-sm text-muted-foreground">
               {role === "investor" ? "Seller: " : "Buyer: "}
               {otherParty?.profile?.name || otherParty?.email || "Unknown"}
@@ -154,6 +161,44 @@ export function OfferCard({
           </div>
         </div>
 
+        {/* Escrow Payment URL for approved escrow offers */}
+        {offer.paymentMethod === "escrow" && 
+         offer.status === "approved" && 
+         offer.escrowTransactionId && 
+         typeof offer.escrowTransactionId === "object" && 
+         offer.escrowTransactionId.paymentUrl && 
+         role === "investor" && (
+          <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-300 dark:border-emerald-700 rounded-lg">
+            <div className="flex items-start gap-3">
+              <div className="text-2xl">🛡️</div>
+              <div className="space-y-2">
+                <p className="font-semibold text-emerald-800 dark:text-emerald-200">
+                  Secure Payment Ready
+                </p>
+                <p className="text-sm text-emerald-700 dark:text-emerald-300">
+                  Complete your payment through our secure escrow system
+                </p>
+                <Button 
+                  asChild 
+                  className="bg-emerald-600 hover:bg-emerald-700 mt-2"
+                  size="sm"
+                >
+                  <a 
+                    href={offer.escrowTransactionId.paymentUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                  >
+                    Pay Securely via Escrow
+                  </a>
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Amount: {formatCurrency(offer.offerAmount)} | Platform Fee: 5%
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {offer.message && (
           <div className="text-sm bg-muted p-3 rounded-md">
             <span className="font-semibold block mb-1">Message:</span>
@@ -165,6 +210,44 @@ export function OfferCard({
           <div className="text-sm bg-red-50 text-red-900 p-3 rounded-md border border-red-100">
             <span className="font-semibold block mb-1">Seller Response:</span>
             {offer.sellerResponse}
+          </div>
+        )}
+
+        {/* Escrow Payment URL for approved escrow offers */}
+        {offer.paymentMethod === "escrow" && 
+         offer.status === "approved" && 
+         offer.escrowTransactionId && 
+         typeof offer.escrowTransactionId === "object" && 
+         offer.escrowTransactionId.paymentUrl && 
+         role === "investor" && (
+          <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-300 dark:border-emerald-700 rounded-lg">
+            <div className="flex items-start gap-3">
+              <div className="text-2xl">🛡️</div>
+              <div className="space-y-2 flex-1">
+                <p className="font-semibold text-emerald-800 dark:text-emerald-200">
+                  Secure Payment Ready
+                </p>
+                <p className="text-sm text-emerald-700 dark:text-emerald-300">
+                  Complete your payment through our secure escrow system. Funds will be held until contract is signed.
+                </p>
+                <Button 
+                  asChild 
+                  className="bg-emerald-600 hover:bg-emerald-700 w-full"
+                  size="sm"
+                >
+                  <a 
+                    href={offer.escrowTransactionId.paymentUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                  >
+                    Pay Securely via Escrow
+                  </a>
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Amount: {formatCurrency(offer.offerAmount)} | Platform Fee: 5%
+                </p>
+              </div>
+            </div>
           </div>
         )}
       </CardContent>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { SearchBar } from "@/components/ui/search-bar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,9 +23,35 @@ export default function MessagesPage() {
     currentUserId,
   } = useChat();
 
+  const [searchParams, setSearchParams] = useSearchParams();
   const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-select thread from URL parameter
+  useEffect(() => {
+    const threadId = searchParams.get("thread");
+    console.log("Thread auto-select:", { 
+      threadId, 
+      threadsCount: threads.length, 
+      loadingThreads,
+      selectedThread: selectedThread?._id 
+    });
+    
+    // Only attempt auto-select when threads are loaded and we have a thread ID
+    if (threadId && !loadingThreads && threads.length > 0 && !selectedThread) {
+      const thread = threads.find((t) => t._id === threadId);
+      console.log("Found thread to select:", thread?._id);
+      if (thread) {
+        setSelectedThread(thread);
+        // Remove the thread param from URL after selecting
+        searchParams.delete("thread");
+        setSearchParams(searchParams);
+      } else {
+        console.warn("Thread not found in loaded threads:", threadId);
+      }
+    }
+  }, [threads, searchParams, selectedThread, setSelectedThread, setSearchParams, loadingThreads]);
 
   useEffect(() => {
     scrollToBottom();
@@ -83,7 +110,7 @@ export default function MessagesPage() {
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-2">
-              {loadingThreads ? (
+              {loadingThreads && threads.length === 0 ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <div key={i} className="flex items-center space-x-4 p-3">
                     <Skeleton className="h-10 w-10 rounded-full" />

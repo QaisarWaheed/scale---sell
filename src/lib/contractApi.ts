@@ -28,7 +28,13 @@ export const contractApi = {
 
   // Admin approve contract
   adminApprove: async (id: string) => {
-    const response = await api.put<Contract>(`/contracts/${id}/admin-approve`);
+    const response = await api.put<Contract>(`/contracts/${id}/admin/approve`);
+    return response.data;
+  },
+
+  // Get all contracts (admin only)
+  getAllContracts: async () => {
+    const response = await api.get<Contract[]>("/contracts/all");
     return response.data;
   },
 };

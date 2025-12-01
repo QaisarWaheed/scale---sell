@@ -27,7 +27,7 @@ export interface IListing extends Document {
     reasonForSelling?: string;
   };
   status: "pending" | "approved" | "rejected";
-  seller: mongoose.Types.ObjectId; // reference to User
+  sellerId: mongoose.Types.ObjectId; // reference to User
   images: string[]; // URLs
   createdAt: Date;
   updatedAt: Date;
@@ -69,7 +69,7 @@ const ListingSchema = new Schema<IListing>(
       enum: ["pending", "approved", "rejected"],
       default: "approved",
     },
-    seller: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    sellerId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     images: [{ type: String }],
   },
   { timestamps: true }

@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { PaymentMethod } from "@/types";
-import { CreditCard, Smartphone, Building2, Wallet } from "lucide-react";
+import { CreditCard, Smartphone, Building2, Wallet, Shield } from "lucide-react";
 
 interface PaymentMethodBadgeProps {
   method: PaymentMethod;
@@ -8,6 +8,11 @@ interface PaymentMethodBadgeProps {
 
 export function PaymentMethodBadge({ method }: PaymentMethodBadgeProps) {
   const config = {
+    escrow: {
+      label: "Platform Escrow",
+      icon: Shield,
+      color: "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-200",
+    },
     jazzcash: {
       label: "JazzCash",
       icon: Smartphone,

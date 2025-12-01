@@ -207,7 +207,7 @@ export default function MyListingsPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
                           onClick={() =>
-                            navigate(`/sell-business?edit=${listing._id}`)
+                            navigate(`/edit-listing/${listing._id}`)
                           }
                         >
                           <Edit className="h-4 w-4 mr-2" />

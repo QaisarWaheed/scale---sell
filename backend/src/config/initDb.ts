@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import User from "../models/User";
-import Business from "../models/Business";
+import Listing from "../models/Listing";
 import EscrowTransaction from "../models/EscrowTransaction";
 import Contract from "../models/Contract";
 import Message from "../models/Message";
@@ -20,7 +20,7 @@ export const initializeCollections = async () => {
     // Create collections if they don't exist
     const collections = [
       { name: "users", model: User },
-      { name: "businesses", model: Business },
+      { name: "listings", model: Listing },
       { name: "escrowtransactions", model: EscrowTransaction },
       { name: "contracts", model: Contract },
       { name: "messages", model: Message },
@@ -65,7 +65,7 @@ export const getCollectionStats = async () => {
 
     const stats = {
       users: await User.countDocuments(),
-      businesses: await Business.countDocuments(),
+      listings: await Listing.countDocuments(),
       escrowTransactions: await EscrowTransaction.countDocuments(),
       contracts: await Contract.countDocuments(),
       messages: await Message.countDocuments(),
