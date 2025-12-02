@@ -13,7 +13,6 @@ dist-ssr
 *.local
 
 # Editor directories and files
-.vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
@@ -23,12 +22,15 @@ dist-ssr
 *.sln
 *.sw?
 
-.env
-.env.local
-.env.example
-./env
-./backend/env
+# .env
+# .env.local
+# .env.example
+# ./env
+# ./backend/env
 
 .prompts
 ./prompts
 ./src/prompts
+config.bat
+temp_auto_push.bat
+temp_interactive_push.bat
