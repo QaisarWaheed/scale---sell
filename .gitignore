@@ -23,12 +23,15 @@ dist-ssr
 *.sln
 *.sw?
 
-.env
-.env.local
-.env.example
-./env
-./backend/env
+# .env
+# .env.local
+# .env.example
+# ./env
+# ./backend/env
 
 .prompts
 ./prompts
 ./src/prompts
+config.bat
+temp_auto_push.bat
+temp_interactive_push.bat
